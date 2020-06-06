@@ -25,7 +25,7 @@ class DataPreparation:
         
         self.transcript = prepare_transcripts.get_transcript_data(self.transcriptFile)
         self.tones = prepare_tones.get_tones_data(self.tonesFile)
-        a = 0
+        self.accents = prepare_accents.get_accents_data(self.accentsFile)
 
 
 a = DataPreparation("/home/lukas/Dokumente/Uni/ma_thesis/quelldaten/DIRNDL-prosody", "200703271500")
