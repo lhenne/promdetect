@@ -21,6 +21,12 @@ def get_transcript_data(transcriptFile):
 
     transcriptData = pd.read_csv(content, sep=" ", engine="python" , quoting=3, names=["idx","start","xwaves","label"]).drop(["idx"], axis=1)
 
+    ## Add end timestamps to each label, 1ms before the next one starts
+    transcriptData["end"] = None
+
+    for i in transcriptData.index:
+        transcriptData.at[i, "end"] = transcriptData.loc[i+1, "start"] - 0.001
+
     return transcriptData
 
 
