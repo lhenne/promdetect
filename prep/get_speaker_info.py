@@ -1,6 +1,7 @@
 import re
 
-#### Get the gender of a speaker from their ID
+
+#### Get the gender of a speaker from the recording ID
 
 def get_gender(recordingID):
 
@@ -17,6 +18,8 @@ def get_gender(recordingID):
             print(speakerGender)
             raise ValueError
 
+
+#### Get the ID of a speaker from the recording ID
 
 def get_id(recordingID):
 
