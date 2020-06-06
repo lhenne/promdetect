@@ -19,7 +19,7 @@ def get_transcript_data(transcriptFile):
     
     content = StringIO(clean_text(rawContent)) # Clean data and convert to a StringIO object that can be parsed by the `pandas.read_csv` function
 
-    transcriptData = pd.read_csv(content, sep=" ", engine="python" , quoting=3, names=["start","xwaves","label"])
+    transcriptData = pd.read_csv(content, sep=" ", engine="python" , quoting=3, names=["idx","start","xwaves","label"]).drop(["idx"], axis=1)
 
     return transcriptData
 
