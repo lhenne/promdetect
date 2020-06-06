@@ -19,7 +19,7 @@ class DataPreparation:
 
         # get gender and ID of speaker
         self.speakerGender = get_speaker_info.get_gender(recordingID)
-        # self.speakerID = get_speaker_info.get_id(recordingID) # TODO: create this function in get_speaker_info
+        self.speakerID = get_speaker_info.get_id(recordingID)
     
     def transform_data(self):
         
