@@ -1,4 +1,4 @@
-""" 
+"""
 Import necessary packages:
 `re` for regular expressions
 `pandas` for providing a data structure to store the CSV data in within Python
@@ -13,33 +13,39 @@ from io import StringIO
 def get_transcript_data(transcriptFile):
 
     with open(transcriptFile, "r", encoding="iso-8859-1") as f:
-        while f.readline() != "#\n": # A lone hash sign in a line signifies the start of the data block
+        while f.readline() != "#\n":
             pass
         rawContent = f.read()
-    
-    content = StringIO(clean_text(rawContent)) # Clean data and convert to a StringIO object that can be parsed by the `pandas.read_csv` function
 
-    transcriptData = pd.read_csv(content, sep=" ", engine="python" , quoting=3, names=["idx","start","xwaves","label"]).drop(["idx"], axis=1)
+    content = StringIO(clean_text(rawContent))
 
-    ## Add end timestamps to each label, 1ms before the next one starts
-    transcriptData["end"] = None
+    transcriptData = pd.read_csv(content,
+                                 sep=" ",
+                                 engine="python",
+                                 quoting=3,
+                                 names=["idx",
+                                        "end",
+                                        "xwaves",
+                                        "label"]).drop(["idx"], axis=1)
+
+    transcriptData["start"] = None
 
     for i in transcriptData.index:
-        if i < len(transcriptData.index)-1:
-            transcriptData.at[i, "end"] = transcriptData.loc[i+1, "start"] - 0.001
-
+        if i <= len(transcriptData.index) and i > 0:
+            transcriptData.at[i, "start"] = transcriptData.loc[i-1,
+                                                               "end"] + 0.001
 
     return transcriptData
 
 
-#### Ancillary functions block
+# Ancillary functions block
 
 
 def clean_text(rawText):
-    text = re.sub(r" {2,}", " ", rawText) # Eliminate the indent before each line, and regularize whitespaces
-    
-    #### Fix Umlaute and scharfes S
-    replacements = { # Create catalogue of strings that have to be replaced, with their replacements
+    text = re.sub(r" {2,}", " ", rawText)
+
+    #  Fix Umlaute and scharfes S
+    replacements = {
         "\"u": "ü",
         "\"U": "Ü",
         "\"a": "ä",
@@ -49,9 +55,8 @@ def clean_text(rawText):
         "\"s": "ß",
         "\"S": "ß"
         }
-    
-    
-    for string, replacement in replacements.items(): # do the replacement for each of the dictionary's entries
+
+    for string, replacement in replacements.items():
         text = text.replace(string, replacement)
 
     return text
