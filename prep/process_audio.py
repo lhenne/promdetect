@@ -17,7 +17,7 @@ import pandas as pd
 
 def get_accent_intensity(soundObj, accentsData):
 
-    intensityObj = soundObj.to_intensity()
+    intensityObj = soundObj.to_intensity(minimum_pitch=50)
 
     intensityValues = list()
 
@@ -56,7 +56,7 @@ def get_accent_f0(soundObj, accentsData, unit):
 
 def get_tone_intensity(soundObj, tonesData):
 
-    intensityObj = soundObj.to_intensity()
+    intensityObj = soundObj.to_intensity(minimum_pitch=50)
 
     intensityValues = list()
 
@@ -115,7 +115,7 @@ def get_word_intensity(soundObj, transcriptData):
             mean_intensity = np.nan
 
         else:
-            intensityObjWord = soundObjWord.to_intensity()
+            intensityObjWord = soundObjWord.to_intensity(minimum_pitch=50)
 
             min_intensity = intensityObjWord.get_minimum()
             max_intensity = intensityObjWord.get_maximum()
