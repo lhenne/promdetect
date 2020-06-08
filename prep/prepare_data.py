@@ -1,9 +1,11 @@
 """
 Import necessary packages:
 `pandas` to manage data
+`parselmouth` to send commands to the Praat phonetics software
 """
 
 import pandas as pd
+import parselmouth as pm
 
 import prepare_transcripts as transcripts
 import prepare_tones as tones
@@ -53,9 +55,12 @@ class DataPreparation:
 
     def compute_audio_values(self):
 
+        soundObj = pm.Sound(wavFile)
+
         self.accents["intensity"] = audio.get_accent_intensity(
-            self.wavFile,
-            self.accents)
+            soundObj,
+            self.accents
+            )
 
 
 a = DataPreparation(
