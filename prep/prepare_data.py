@@ -90,10 +90,26 @@ class DataPreparation:
         tmpWordIntensities = pd.DataFrame(audio.get_word_intensity(
                             soundObj,
                             self.transcript
-                                ), columns=["min_intensity",
-                                            "max_intensity",
-                                            "mean_intensity"]
-                            )
+                            ), columns=["min_intensity",
+                                        "max_intensity",
+                                        "mean_intensity"]
+            )
+        tmpWordPitchHz = pd.DataFrame(audio.get_word_f0(
+                            soundObj,
+                            self.transcript,
+                            "Hertz"
+                            ), columns=["min_f0_hz",
+                                        "max_f0_hz",
+                                        "mean_f0_hz"]
+            )
+        tmpWordPitchERB = pd.DataFrame(audio.get_word_f0(
+                            soundObj,
+                            self.transcript,
+                            "ERB"
+                            ), columns=["min_f0_erb",
+                                        "max_f0_erb",
+                                        "mean_f0_erb"]
+            )
 
         a = 0
 

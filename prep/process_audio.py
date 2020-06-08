@@ -6,6 +6,7 @@ Import necessary packages:
 """
 
 import parselmouth as pm
+from parselmouth.praat import call
 import numpy as np
 import pandas as pd
 
@@ -33,7 +34,7 @@ def get_accent_f0(soundObj, accentsData, unit):
     elif unit == "ERB":
         unit = pm.PitchUnit.ERB
     else:
-        print("Function get_tone_f0: \
+        print("Function get_accent_f0: \
            Please provide appropriate unit of measurement")
         raise ValueError
 
@@ -88,7 +89,7 @@ def get_tone_f0(soundObj, tonesData, unit):
     return f0Values
 
 
-# Word-based functions
+# Word-level functions
 
 def get_word_intensity(soundObj, transcriptData):
 
@@ -101,7 +102,12 @@ def get_word_intensity(soundObj, transcriptData):
             to_time=row.end
             )
 
-        if soundObjWord.total_duration < 0.064:
+        if soundObjWord.total_duration < 0.064 or row.label in ["[@]",
+                                                                "[t]",
+                                                                "[n]",
+                                                                "[f]",
+                                                                "[h]",
+                                                                "<P>"]:
             min_intensity = np.nan
             max_intensity = np.nan
             mean_intensity = np.nan
@@ -118,3 +124,51 @@ def get_word_intensity(soundObj, transcriptData):
         intensityValues.append(word_values)
 
     return intensityValues
+
+
+def get_word_f0(soundObj, transcriptData, unit):
+
+    f0Values = list()
+
+    if unit not in ["Hertz", "ERB"]:
+        print("Function get_word_f0: \
+            Please provide appropriate unit of measurement")
+        raise ValueError
+
+    for row in transcriptData.itertuples(index=False):
+
+        soundObjWord = soundObj.extract_part(
+            from_time=row.start,
+            to_time=row.end
+            )
+
+        if row.label in ["[@]", "[t]", "[n]", "[f]", "[h]", "<P>"]:
+            min_f0 = np.nan
+            max_f0 = np.nan
+            mean_f0 = np.nan
+        else:
+            pitchObjWord = soundObjWord.to_pitch()
+
+            min_f0 = call(pitchObjWord,
+                          "Get minimum",
+                          0,
+                          0,
+                          unit,
+                          "Parabolic")
+            max_f0 = call(pitchObjWord,
+                          "Get maximum",
+                          0,
+                          0,
+                          unit,
+                          "Parabolic")
+            mean_f0 = call(pitchObjWord,
+                           "Get mean",
+                           0,
+                           0,
+                           unit)
+
+        word_values = tuple([min_f0, max_f0, mean_f0])
+
+        f0Values.append(word_values)
+
+    return f0Values
