@@ -24,16 +24,25 @@ def get_accent_intensity(soundObj, accentsData):
     return intensityValues
 
 
-def get_accent_f0(soundObj, accentsData):
+def get_accent_f0(soundObj, accentsData, unit):
 
     pitchObj = soundObj.to_pitch()
+
+    if unit == "Hertz":
+        unit = pm.PitchUnit.HERTZ
+    elif unit == "ERB":
+        unit = pm.PitchUnit.ERB
+    else:
+        print("Function get_tone_f0: \
+           Please provide appropriate unit of measurement")
+        raise ValueError
 
     f0Values = list()
 
     for row in accentsData.itertuples(index=False):
         f0Values.append(pitchObj.get_value_at_time(
             time=row.time,
-            unit=pm.PitchUnit.HERTZ
+            unit=unit
             )
         )
 
@@ -54,16 +63,25 @@ def get_tone_intensity(soundObj, tonesData):
     return intensityValues
 
 
-def get_tone_f0(soundObj, tonesData):
+def get_tone_f0(soundObj, tonesData, unit):
 
     pitchObj = soundObj.to_pitch()
+
+    if unit == "Hertz":
+        unit = pm.PitchUnit.HERTZ
+    elif unit == "ERB":
+        unit = pm.PitchUnit.ERB
+    else:
+        print("Function get_tone_f0: \
+            Please provide appropriate unit of measurement")
+        raise ValueError
 
     f0Values = list()
 
     for row in tonesData.itertuples(index=False):
         f0Values.append(pitchObj.get_value_at_time(
             time=row.time,
-            unit=pm.PitchUnit.HERTZ
+            unit=unit
             )
         )
 
