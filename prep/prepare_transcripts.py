@@ -34,6 +34,8 @@ def get_transcript_data(transcriptFile):
         if i <= len(transcriptData.index) and i > 0:
             transcriptData.at[i, "start"] = transcriptData.loc[i-1,
                                                                "end"] + 0.001
+        elif i == 0:
+            transcriptData.at[i, "start"] = 0
 
     return transcriptData
 
