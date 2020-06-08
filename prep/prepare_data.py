@@ -116,6 +116,13 @@ class DataPreparation:
                                      tmpWordPitchHz,
                                      tmpWordPitchERB],
                                     axis=1)
+
+        self.accents["f0_excursion"] = audio.get_accent_f0_excursion(
+            soundObj,
+            self.accents,
+            self.transcript
+            )
+
         a = 0
 
 

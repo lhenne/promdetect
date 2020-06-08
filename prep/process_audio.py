@@ -2,12 +2,14 @@
 Import necessary packages:
 `parselmouth` to send commands to the Praat phonetics software
 `numpy` to iterate with high performance
+`math` to calculate pitch excursion
 `pandas` to manage data
 """
 
 import parselmouth as pm
 from parselmouth.praat import call
 import numpy as np
+import math
 import pandas as pd
 
 
@@ -172,3 +174,23 @@ def get_word_f0(soundObj, transcriptData, unit):
         f0Values.append(word_values)
 
     return f0Values
+
+
+def get_accent_f0_excursion(soundObj, accentData, transcriptData):
+
+    excursionValues = list()
+
+    for row in accentData.itertuples(index=False):
+        accentTimestamp = row.time
+        accentF0 = row.f0_hz
+
+        wordAtTimestamp = transcriptData.loc[
+            (transcriptData["start"] <= accentTimestamp) &
+            (transcriptData["end"] >= accentTimestamp)]
+        lowEndF0 = wordAtTimestamp.min_f0_hz
+
+        f0Excursion = math.log2(accentF0/lowEndF0)
+
+        excursionValues.append(f0Excursion)
+
+    return excursionValues
