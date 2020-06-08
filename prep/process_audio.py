@@ -10,9 +10,8 @@ import numpy as np
 import pandas as pd
 
 
-def get_accent_intensity(wavFile, accentsData):
+def get_accent_intensity(soundObj, accentsData):
 
-    soundObj = pm.Sound(wavFile)
     intensityObj = soundObj.to_intensity()
 
     intensityValues = list()
@@ -21,3 +20,19 @@ def get_accent_intensity(wavFile, accentsData):
         intensityValues.append(intensityObj.get_value(row.time))
 
     return intensityValues
+
+
+def get_accent_f0(soundObj, accentsData):
+
+    pitchObj = soundObj.to_pitch()
+
+    f0Values = list()
+
+    for row in accentsData.itertuples(index=False):
+        f0Values.append(pitchObj.get_value_at_time(
+            time=row.time,
+            unit=pm.PitchUnit.HERTZ
+            )
+        )
+
+    return f0Values

@@ -55,12 +55,19 @@ class DataPreparation:
 
     def compute_audio_values(self):
 
-        soundObj = pm.Sound(wavFile)
+        soundObj = pm.Sound(self.wavFile)
 
         self.accents["intensity"] = audio.get_accent_intensity(
             soundObj,
             self.accents
             )
+
+        self.accents["f0"] = audio.get_accent_f0(
+            soundObj,
+            self.accents
+            )
+
+        a = 0
 
 
 a = DataPreparation(
