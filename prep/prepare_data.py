@@ -61,10 +61,18 @@ class DataPreparation:
             soundObj,
             self.accents
             )
-
         self.accents["f0"] = audio.get_accent_f0(
             soundObj,
             self.accents
+            )
+
+        self.tones["intensity"] = audio.get_tone_intensity(
+            soundObj,
+            self.tones
+            )
+        self.tones["f0"] = audio.get_tone_f0(
+            soundObj,
+            self.tones
             )
 
         a = 0

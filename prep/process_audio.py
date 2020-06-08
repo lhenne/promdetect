@@ -10,6 +10,8 @@ import numpy as np
 import pandas as pd
 
 
+# Accent functions
+
 def get_accent_intensity(soundObj, accentsData):
 
     intensityObj = soundObj.to_intensity()
@@ -29,6 +31,36 @@ def get_accent_f0(soundObj, accentsData):
     f0Values = list()
 
     for row in accentsData.itertuples(index=False):
+        f0Values.append(pitchObj.get_value_at_time(
+            time=row.time,
+            unit=pm.PitchUnit.HERTZ
+            )
+        )
+
+    return f0Values
+
+
+# Tonal phrase boundary functions
+
+def get_tone_intensity(soundObj, tonesData):
+
+    intensityObj = soundObj.to_intensity()
+
+    intensityValues = list()
+
+    for row in tonesData.itertuples(index=False):
+        intensityValues.append(intensityObj.get_value(row.time))
+
+    return intensityValues
+
+
+def get_tone_f0(soundObj, tonesData):
+
+    pitchObj = soundObj.to_pitch()
+
+    f0Values = list()
+
+    for row in tonesData.itertuples(index=False):
         f0Values.append(pitchObj.get_value_at_time(
             time=row.time,
             unit=pm.PitchUnit.HERTZ
