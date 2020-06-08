@@ -5,10 +5,10 @@ Import necessary packages:
 
 import pandas as pd
 
-import prepare_transcripts
-import prepare_tones
-import prepare_accents
-import get_speaker_info
+import prepare_transcripts as transcripts
+import prepare_tones as tones
+import prepare_accents as accents
+import get_speaker_info as speaker
 
 """
 The functions in this module reformat the data from the DIRNDL corpus in order
@@ -40,15 +40,15 @@ class DataPreparation:
             )
 
         # Get gender and ID of speaker
-        self.speakerGender = get_speaker_info.get_gender(recordingID)
-        self.speakerID = get_speaker_info.get_id(recordingID)
+        self.speakerGender = speaker.get_gender(recordingID)
+        self.speakerID = speaker.get_id(recordingID)
 
     def transform_annotations(self):
 
-        self.transcript = prepare_transcripts.get_transcript_data(
+        self.transcript = transcripts.get_transcript_data(
             self.transcriptFile)
-        self.tones = prepare_tones.get_tones_data(self.tonesFile)
-        self.accents = prepare_accents.get_accents_data(self.accentsFile)
+        self.tones = tones.get_tones_data(self.tonesFile)
+        self.accents = accents.get_accents_data(self.accentsFile)
 
 
 a = DataPreparation(
