@@ -111,6 +111,11 @@ class DataPreparation:
                                         "mean_f0_erb"]
             )
 
+        self.transcript = pd.concat([self.transcript,
+                                     tmpWordIntensities,
+                                     tmpWordPitchHz,
+                                     tmpWordPitchERB],
+                                    axis=1)
         a = 0
 
 
