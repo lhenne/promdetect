@@ -87,6 +87,14 @@ class DataPreparation:
             "ERB"
             )
 
+        tmpWordIntensities = pd.DataFrame(audio.get_word_intensity(
+                            soundObj,
+                            self.transcript
+                                ), columns=["min_intensity",
+                                            "max_intensity",
+                                            "mean_intensity"]
+                            )
+
         a = 0
 
 

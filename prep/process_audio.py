@@ -86,3 +86,35 @@ def get_tone_f0(soundObj, tonesData, unit):
         )
 
     return f0Values
+
+
+# Word-based functions
+
+def get_word_intensity(soundObj, transcriptData):
+
+    intensityValues = list()
+
+    for row in transcriptData.itertuples(index=False):
+
+        soundObjWord = soundObj.extract_part(
+            from_time=row.start,
+            to_time=row.end
+            )
+
+        if soundObjWord.total_duration < 0.064:
+            min_intensity = np.nan
+            max_intensity = np.nan
+            mean_intensity = np.nan
+
+        else:
+            intensityObjWord = soundObjWord.to_intensity()
+
+            min_intensity = intensityObjWord.get_minimum()
+            max_intensity = intensityObjWord.get_maximum()
+            mean_intensity = intensityObjWord.get_average()
+
+        word_values = tuple([min_intensity, max_intensity, mean_intensity])
+
+        intensityValues.append(word_values)
+
+    return intensityValues
