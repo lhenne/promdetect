@@ -9,6 +9,7 @@ import prepare_transcripts as transcripts
 import prepare_tones as tones
 import prepare_accents as accents
 import get_speaker_info as speaker
+import process_audio as audio
 
 """
 The functions in this module reformat the data from the DIRNDL corpus in order
@@ -50,8 +51,15 @@ class DataPreparation:
         self.tones = tones.get_tones_data(self.tonesFile)
         self.accents = accents.get_accents_data(self.accentsFile)
 
+    def compute_audio_values(self):
+
+        self.accents["intensity"] = audio.get_accent_intensity(
+            self.wavFile,
+            self.accents)
+
 
 a = DataPreparation(
     "/home/lukas/Dokumente/Uni/ma_thesis/quelldaten/DIRNDL-prosody",
     "200703271500")
 a.transform_annotations()
+a.compute_audio_values()
