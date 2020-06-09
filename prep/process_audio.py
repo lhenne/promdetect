@@ -104,7 +104,7 @@ def get_word_intensity(soundObj, transcriptData):
             to_time=row.end
             )
 
-        if soundObjWord.total_duration < 0.064 or row.label in ["[@]",
+        if soundObjWord.total_duration < 0.128 or row.label in ["[@]",
                                                                 "[t]",
                                                                 "[n]",
                                                                 "[f]",
