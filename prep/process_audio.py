@@ -46,7 +46,7 @@ def get_accent_f0(soundObj, accentsData, unit):
         f0Values.append(pitchObj.get_value_at_time(
             time=row.time,
             unit=unit
-            )
+        )
         )
 
     return f0Values
@@ -85,7 +85,7 @@ def get_tone_f0(soundObj, tonesData, unit):
         f0Values.append(pitchObj.get_value_at_time(
             time=row.time,
             unit=unit
-            )
+        )
         )
 
     return f0Values
@@ -102,7 +102,7 @@ def get_word_intensity(soundObj, transcriptData):
         soundObjWord = soundObj.extract_part(
             from_time=row.start,
             to_time=row.end
-            )
+        )
 
         if soundObjWord.total_duration < 0.128 or row.label in ["[@]",
                                                                 "[t]",
@@ -142,7 +142,7 @@ def get_word_f0(soundObj, transcriptData, unit):
         soundObjWord = soundObj.extract_part(
             from_time=row.start,
             to_time=row.end
-            )
+        )
 
         if row.label in ["[@]", "[t]", "[n]", "[f]", "[h]", "<P>"]:
             min_f0 = np.nan
@@ -185,11 +185,10 @@ def get_accent_f0_excursion(soundObj, accentData, transcriptData):
         accentF0 = row.f0_hz
 
         wordAtTimestamp = transcriptData.loc[
-            (transcriptData["start"] <= accentTimestamp) &
-            (transcriptData["end"] >= accentTimestamp)]
+            (transcriptData["start"] <= accentTimestamp) & (transcriptData["end"] >= accentTimestamp)]
         lowEndF0 = wordAtTimestamp.min_f0_hz
 
-        f0Excursion = math.log2(accentF0/lowEndF0)
+        f0Excursion = math.log2(accentF0 / lowEndF0)
 
         excursionValues.append(f0Excursion)
 

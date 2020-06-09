@@ -32,7 +32,7 @@ def get_transcript_data(transcriptFile):
 
     for i in transcriptData.index:
         if i <= len(transcriptData.index) and i > 0:
-            transcriptData.at[i, "start"] = transcriptData.loc[i-1,
+            transcriptData.at[i, "start"] = transcriptData.loc[i - 1,
                                                                "end"] + 0.001
         elif i == 0:
             transcriptData.at[i, "start"] = 0
@@ -56,7 +56,7 @@ def clean_text(rawText):
         "\"O": "Ö",
         "\"s": "ß",
         "\"S": "ß"
-        }
+    }
 
     for string, replacement in replacements.items():
         text = text.replace(string, replacement)

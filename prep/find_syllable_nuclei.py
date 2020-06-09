@@ -39,7 +39,7 @@ pointProcess = call(soundFromIntensityMatrix,
                     "To PointProcess (extrema)", "Left", "yes", "no", "Sinc70")
 
 numPeaksPrelim = call(pointProcess, "Get number of points")
-peakTimingsPrelim = [call(pointProcess, "Get time from index", i+1)
+peakTimingsPrelim = [call(pointProcess, "Get time from index", i + 1)
                      for i in range(numPeaksPrelim)]
 
 peakTimings = []
@@ -58,13 +58,13 @@ validPeakTimings = []
 currentTiming = peakTimings[0]
 currentIntensity = peakIntensities[0]
 
-for peakIndex in range(peakCount-1):
+for peakIndex in range(peakCount - 1):
     followingPeak = peakIndex + 1
-    followingTiming = peakTimings[peakIndex+1]
+    followingTiming = peakTimings[peakIndex + 1]
 
     dipIntensity = call(intensityObj, "Get minimum",
                         currentTiming, followingTiming, "None")
-    intensityDifference = abs(currentIntensity-dipIntensity)
+    intensityDifference = abs(currentIntensity - dipIntensity)
     if intensityDifference > minDipBetweenPeaks:
         validPeakCount += 1
         validPeakTimings.append(peakTimings[peakIndex])
