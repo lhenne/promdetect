@@ -2,8 +2,16 @@
 This script detect syllable nuclei in a sound file
 and returns their timestamps as annotations.
 
-It is a loose translation of a Praat script by Nivja de Jong and Ton Wempe,
-and takes aspects from David Feinberg's Python translation of that script.
+It is a loose translation of a Praat script by Nivja de Jong and Ton Wempe[1],
+and takes aspects from David Feinberg's Python translation[2] of that script.
+
+[1]: https://sites.google.com/site/speechrate/Home/praat-script-syllable-nuclei-v2
+[2]: https://github.com/drfeinberg/PraatScripts/blob/master/syllable_nuclei.py
+
+Import necessary packages:
+`parselmouth` to send commands to the Praat phonetics software
+`re` for regular expressions
+`glob` to collect all recordings that are to be processed
 """
 
 import parselmouth as pm
