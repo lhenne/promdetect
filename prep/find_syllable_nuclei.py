@@ -1,6 +1,6 @@
 """
-This script detect syllable nuclei in a sound file
-and returns their timestamps as annotations.
+This script finds syllable nuclei in a sound file
+and returns their timestamps.
 
 It is a loose translation of a Praat script by Nivja de Jong and Ton Wempe[1],
 and takes aspects from David Feinberg's Python translation[2] of that script.
@@ -110,7 +110,7 @@ for wavFile in recordings:
 
     syllableNuclei = determine_nucleus_points(wavFile)
 
-    outputPath = "data/" + \
+    outputPath = "data/dirndl/nuclei/" + \
         re.search("[ \w-]+?(?=\.)", wavFile)[0] + ".nuclei"
     with open(outputPath, "w+") as outputFile:
         for nucleus in syllableNuclei:
