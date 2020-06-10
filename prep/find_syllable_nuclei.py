@@ -1,5 +1,5 @@
 """
-This script finds syllable nuclei in a sound file
+This script detects syllable nuclei in a sound file
 and returns their timestamps.
 
 It is a loose translation of a Praat script by Nivja de Jong and Ton Wempe[1],
@@ -28,7 +28,9 @@ recordings = glob(
 
 
 def determine_nucleus_points(soundFile):
-    soundObj = pm.Sound(soundFile)
+    rawSoundObj = pm.Sound(soundFile)
+    soundObj = call(rawSoundObj, "Remove noise", 0, 0, 0.025,
+                    50, 10000, 40, "Spectral subtraction")
     intensityObj = soundObj.to_intensity(minimum_pitch=50)
 
     totalDuration = soundObj.get_total_duration()
@@ -76,10 +78,11 @@ def determine_nucleus_points(soundFile):
         followingPeak = peakIndex + 1
         followingTiming = peakTimings[peakIndex + 1]
 
-        dipIntensity = call(intensityObj, "Get minimum",
-                            currentTiming, followingTiming, "None")
-        intensityDifference = abs(currentIntensity - dipIntensity)
-        if intensityDifference > minDipBetweenPeaks:
+        followingDipIntensity = call(intensityObj, "Get minimum",
+                                     currentTiming, followingTiming, "None")
+        followingIntensityDifference = abs(
+            currentIntensity - followingDipIntensity)
+        if followingIntensityDifference > minDipBetweenPeaks:
             validPeakCount += 1
             validPeakTimings.append(peakTimings[peakIndex])
         currentTiming = peakTimings[followingPeak]
@@ -118,9 +121,8 @@ for wavFile in recordings:
 
 
 # To save the nucleus data to a Praat TextGrid, uncomment and include the following lines:
-
 # call(textGridObj, "Insert point tier", 1, "nuclei")
 # for i in range(len(voicedPeakTimings)):
 #     call(textGridObj, "Insert point", 1, voicedPeakTimings[i], "")
 
-# textGridObj.save_as_text_file(".TextGrid")
+# textGridObj.save_as_text_file(str(wavFile + ".TextGrid"))
