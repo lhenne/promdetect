@@ -78,16 +78,36 @@ def determine_nucleus_points(soundFile):
         followingPeak = peakIndex + 1
         followingTiming = peakTimings[peakIndex + 1]
 
-        followingDipIntensity = call(intensityObj, "Get minimum",
-                                     currentTiming, followingTiming, "None")
-        followingIntensityDifference = abs(
-            currentIntensity - followingDipIntensity)
-        if followingIntensityDifference > minDipBetweenPeaks:
-            validPeakCount += 1
-            validPeakTimings.append(peakTimings[peakIndex])
-        currentTiming = peakTimings[followingPeak]
-        currentIntensity = call(intensityObj, "Get value at time",
-                                peakTimings[followingPeak], "Cubic")
+        if peakIndex > 0:
+            precedingPeak = peakIndex - 1
+            precedingTiming = peakTimings[peakIndex - 1]
+
+            followingDipIntensity = call(intensityObj, "Get minimum",
+                                         currentTiming, followingTiming, "None")
+            followingIntensityDifference = abs(
+                currentIntensity - followingDipIntensity)
+            if followingIntensityDifference > minDipBetweenPeaks:
+                precedingDipIntensity = call(
+                    intensityObj, "Get minimum", currentTiming, precedingTiming, "None")
+                precedingIntensityDifference = abs(
+                    currentIntensity - precedingDipIntensity)
+                if precedingIntensityDifference > minDipBetweenPeaks:
+                    validPeakCount += 1
+                    validPeakTimings.append(peakTimings[peakIndex])
+            currentTiming = peakTimings[followingPeak]
+            currentIntensity = call(intensityObj, "Get value at time",
+                                    peakTimings[followingPeak], "Cubic")
+        else:
+            followingDipIntensity = call(intensityObj, "Get minimum",
+                                         currentTiming, followingTiming, "None")
+            followingIntensityDifference = abs(
+                currentIntensity - followingDipIntensity)
+            if followingIntensityDifference > minDipBetweenPeaks:
+                validPeakCount += 1
+                validPeakTimings.append(peakTimings[peakIndex])
+            currentTiming = peakTimings[followingPeak]
+            currentIntensity = call(intensityObj, "Get value at time",
+                                    peakTimings[followingPeak], "Cubic")
 
     pitchObj = soundObj.to_pitch_ac(
         0.02, 30, 4, False, 0.03, 0.25, 0.01, 0.35, 0.25, 450)
