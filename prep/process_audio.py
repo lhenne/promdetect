@@ -13,30 +13,23 @@ import math
 import pandas as pd
 
 
-# Accent functions
+# Intensity functions
 
-# Get intensity point values for all accent annotations in a recording through Praat
-def get_accent_intensity(soundObj, accentsData):
-
-    # Calculate an intensity contour from the parselmouth sound object.
-    # The minimum possible pitch for speaker voices is assumed to be 50Hz
-    intensityObj = soundObj.to_intensity(minimum_pitch=50)
+def get_intensity(intensityObj, annotationData):
 
     # Create an empty list and iterate over rows of the annotation DataFrame to add intensity point values
     # for each of the accent timings one by one
     intensityValues = list()
 
-    for row in accentsData.itertuples(index=False):
+    for row in annotationData.itertuples(index=False):
         intensityValues.append(intensityObj.get_value(row.time))
 
     return intensityValues
 
 
-# Get F0 point values for all accent annotations in a recording through Praat
-def get_accent_f0(soundObj, accentsData, unit):
+# F0 functions
 
-    # Calculate a pitch contour from the parselmouth sound object.
-    pitchObj = soundObj.to_pitch()
+def get_f0(pitchObj, annotationData, unit):
 
     # Depending on the unit of measurement given as a function parameter, convert to a suitable parameter
     # for usage with parselmouth
@@ -45,7 +38,7 @@ def get_accent_f0(soundObj, accentsData, unit):
     elif unit == "ERB":
         unit = pm.PitchUnit.ERB
     else:
-        print("Function get_accent_f0: \
+        print("Function get_f0: \
            Please provide appropriate unit of measurement")
         raise ValueError
 
@@ -53,7 +46,7 @@ def get_accent_f0(soundObj, accentsData, unit):
     # for each of the accent timings one by one, using the previously determined unit of measurement
     f0Values = list()
 
-    for row in accentsData.itertuples(index=False):
+    for row in annotationData.itertuples(index=False):
         f0Values.append(pitchObj.get_value_at_time(
             time=row.time,
             unit=unit
@@ -64,6 +57,7 @@ def get_accent_f0(soundObj, accentsData, unit):
 
 
 # Get intensity values for all accent annotations in a recording through Praat
+
 def get_accent_f0_excursion(soundObj, accentData, transcriptData):
 
     excursionValues = list()
@@ -81,56 +75,6 @@ def get_accent_f0_excursion(soundObj, accentData, transcriptData):
         excursionValues.append(f0Excursion)
 
     return excursionValues
-
-
-# Tonal phrase boundary functions
-
-# Get intensity point values for all tonal phrase boundary annotations in a recording through Praat
-def get_tone_intensity(soundObj, tonesData):
-
-    # Calculate an intensity contour from the parselmouth sound object.
-    # The minimum possible pitch for speaker voices is assumed to be 50Hz
-    intensityObj = soundObj.to_intensity(minimum_pitch=50)
-
-    # Create an empty list and iterate over rows of the annotation DataFrame to add intensity point values
-    # for each of the tonal phrase boundary timings one by one
-    intensityValues = list()
-
-    for row in tonesData.itertuples(index=False):
-        intensityValues.append(intensityObj.get_value(row.time))
-
-    return intensityValues
-
-
-# Get F0 point values for all tonal phrase boundary annotations in a recording through Praat
-def get_tone_f0(soundObj, tonesData, unit):
-
-    # Calculate a pitch contour from the parselmouth sound object.
-    pitchObj = soundObj.to_pitch()
-
-    # Depending on the unit of measurement given as a function parameter, convert to a suitable parameter
-    # for usage with parselmouth
-    if unit == "Hertz":
-        unit = pm.PitchUnit.HERTZ
-    elif unit == "ERB":
-        unit = pm.PitchUnit.ERB
-    else:
-        print("Function get_tone_f0: \
-            Please provide appropriate unit of measurement")
-        raise ValueError
-
-    # Create an empty list and iterate over rows of the annotation DataFrame to add F0 point values for each
-    # of the tonal phrase boundary timings one by one, using the previously determined unit of measurement
-    f0Values = list()
-
-    for row in tonesData.itertuples(index=False):
-        f0Values.append(pitchObj.get_value_at_time(
-            time=row.time,
-            unit=unit
-        )
-        )
-
-    return f0Values
 
 
 # Word-level functions
@@ -154,9 +98,9 @@ def get_word_intensity(soundObj, transcriptData):
 
         # Don't measure intensity in two cases:
         # (a) The word duration is too short to provide enough material for the calculation
-        #     Praat requires the duration to be at least 6.4 divided by the minimum pitch (0.128s)
+        #     Praat requires the duration to be at least 6.4 divided by the minimum pitch (~0.106s)
         # (b) The label for the word indicates that it is a phrase boundary or breathing sound
-        if soundObjWord.total_duration < 0.128 or row.label in ["[@]",
+        if soundObjWord.total_duration < 0.106 or row.label in ["[@]",
                                                                 "[t]",
                                                                 "[n]",
                                                                 "[f]",
