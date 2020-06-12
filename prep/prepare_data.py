@@ -7,9 +7,7 @@ Import necessary packages:
 import pandas as pd
 import parselmouth as pm
 
-import prepare_transcripts as transcripts
-import prepare_tones as tones
-import prepare_accents as accents
+import process_annotations as annotations
 import get_speaker_info as speaker
 import process_audio as audio
 
@@ -50,10 +48,15 @@ class DataPreparation:
     def transform_annotations(self):
 
         # Process and transform the annotation data from CSV files to pandas DataFrames
-        self.transcript = transcripts.get_transcript_data(
-            self.transcriptFile)
-        self.tones = tones.get_tones_data(self.tonesFile)
-        self.accents = accents.get_accents_data(self.accentsFile)
+        self.transcript = annotations.get_annotation_data(
+            self.transcriptFile,
+            "words")
+        self.tones = annotations.get_annotation_data(
+            self.tonesFile,
+            "tones")
+        self.accents = annotations.get_annotation_data(
+            self.accentsFile,
+            "accents")
 
     def compute_audio_values(self):
 
