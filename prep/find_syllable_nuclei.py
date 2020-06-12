@@ -8,6 +8,11 @@ and takes aspects from David Feinberg's Python translation[2] of that script.
 [1]: https://sites.google.com/site/speechrate/Home/praat-script-syllable-nuclei-v2
 [2]: https://github.com/drfeinberg/PraatScripts/blob/master/syllable_nuclei.py
 
+The analysis is run on filtered versions of the input files, filtering is done
+by means of an internal Praat function with custom parameters.
+This script adds the condition that a syllable nucleus not only has to be followed
+by a 2 dB dip in intensity, but that it also has to be preceded by one.
+
 Import necessary packages:
 `parselmouth` to send commands to the Praat phonetics software
 `re` for regular expressions
