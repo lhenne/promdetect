@@ -63,34 +63,43 @@ class DataPreparation:
         # Create Praat/parselmouth sound object to use across all following audio processing functions
         soundObj = pm.Sound(self.wavFile)
 
+        # Create Praat/parselmouth intensity object to use across functions for tones and accents
+        # The minimum possible pitch for speaker voices is assumed to be 60Hz, the minimum for male speakers
+        # (cf. Cruttenden 1996)
+        intensityObj = soundObj.to_intensity(minimum_pitch=60)
+
+        # Calculate a pitch contour from the parselmouth sound object to use across functions for tones and
+        # accents
+        pitchObj = soundObj.to_pitch()
+
         # Get intensity and F0 (pitch) point values for the timestamps given for accents
-        self.accents["intensity"] = audio.get_accent_intensity(
-            soundObj,
+        self.accents["intensity"] = audio.get_intensity(
+            intensityObj,
             self.accents
         )
-        self.accents["f0_hz"] = audio.get_accent_f0(
-            soundObj,
+        self.accents["f0_hz"] = audio.get_f0(
+            pitchObj,
             self.accents,
             "Hertz"
         )
-        self.accents["f0_erb"] = audio.get_accent_f0(
-            soundObj,
+        self.accents["f0_erb"] = audio.get_f0(
+            pitchObj,
             self.accents,
             "ERB"
         )
 
         # Get intensity and F0 (pitch) point values for the timestamps given for tonal phrase boundaries
-        self.tones["intensity"] = audio.get_tone_intensity(
-            soundObj,
+        self.tones["intensity"] = audio.get_intensity(
+            intensityObj,
             self.tones
         )
-        self.tones["f0_hz"] = audio.get_tone_f0(
-            soundObj,
+        self.tones["f0_hz"] = audio.get_f0(
+            pitchObj,
             self.tones,
             "Hertz"
         )
-        self.tones["f0_erb"] = audio.get_tone_f0(
-            soundObj,
+        self.tones["f0_erb"] = audio.get_f0(
+            pitchObj,
             self.tones,
             "ERB"
         )
