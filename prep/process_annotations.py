@@ -12,16 +12,11 @@ from io import StringIO
 
 def get_accents_data(accentsFile):
 
-    # Use ISO 8859-1 (Western European) encoding to open TSV file containing accent annotations
-    with open(accentsFile, "r", encoding="iso-8859-1") as f:
-        # Don't save any lines until a lone hash sign is found in the line
-        # This signifies the end of the metadata and start of the data block
-        while f.readline() != "#\n":
-            pass
-        rawContent = f.read()
+    # Read data from the input file starting from specific marker
+    rawContent = read_file(accentsFile)
 
     # Clean data and convert to a StringIO object that can be parsed by the `pandas.read_csv` function
-    content = StringIO(re.sub(r" {2,}", " ", rawContent))
+    content = clean_text(rawContent, "accents")
 
     # Read the data into a pandas DataFrame
     # Drop empty column 'idx' directly (caused by a leading whitespace in each line)
@@ -33,16 +28,11 @@ def get_accents_data(accentsFile):
 
 def get_tones_data(tonesFile):
 
-    # Use ISO 8859-1 (Western European) encoding to open TSV file containing tone annotations
-    with open(tonesFile, "r", encoding="iso-8859-1") as f:
-        # Don't save any lines until a lone hash sign is found in the line
-        # This signifies the end of the metadata and start of the data block
-        while f.readline() != "#\n":
-            pass
-        rawContent = f.read()
+    # Read data from the input file starting from specific marker
+    rawContent = read_file(tonesFile)
 
     # Clean data and convert to a StringIO object that can be parsed by the `pandas.read_csv` function
-    content = StringIO(re.sub(r" {2,}", " ", rawContent))
+    content = clean_text(rawContent, "tones")
 
     # Read the data into a pandas DataFrame
     # Drop empty column 'idx' directly (caused by a leading whitespace in each line)
@@ -54,17 +44,12 @@ def get_tones_data(tonesFile):
 
 def get_transcript_data(transcriptFile):
 
-    # Use ISO 8859-1 (Western European) encoding to open TSV file containing transcript
-    with open(transcriptFile, "r", encoding="iso-8859-1") as f:
-        # Don't save any lines until a lone hash sign is found in the line
-        # This signifies the end of the metadata and start of the data block
-        while f.readline() != "#\n":
-            pass
-        rawContent = f.read()
+    # Read data from the input file starting from specific marker
+    rawContent = read_file(transcriptFile)
 
     # Clean data and replace escaped Umlaute with proper ones by running `clean_text` function
     # Convert data to a StringIO object that can be parsed by the `pandas.read_csv` function
-    content = StringIO(clean_text(rawContent))
+    content = clean_text(rawContent, "words")
 
     # Read the data into a pandas DataFrame
     # Drop empty column 'idx' directly (caused by a leading whitespace in each line)
@@ -96,23 +81,43 @@ def get_transcript_data(transcriptFile):
 # Ancillary functions block
 
 
-def clean_text(rawText):
+def clean_text(rawText, annotationType):
     # Reduce all instances two or more consecutive whitespaces to one whitespace
     text = re.sub(r" {2,}", " ", rawText)
 
-    #  Replace escaped Umlaut with proper ones
-    replacements = {
-        "\"u": "ü",
-        "\"U": "Ü",
-        "\"a": "ä",
-        "\"A": "Ä",
-        "\"o": "ö",
-        "\"O": "Ö",
-        "\"s": "ß",
-        "\"S": "ß"
-    }
+    if annotationType == "words":
+        #  Replace escaped Umlaut with proper ones
+        replacements = {
+            "\"u": "ü",
+            "\"U": "Ü",
+            "\"a": "ä",
+            "\"A": "Ä",
+            "\"o": "ö",
+            "\"O": "Ö",
+            "\"s": "ß",
+            "\"S": "ß"
+        }
 
-    for string, replacement in replacements.items():
-        text = text.replace(string, replacement)
+        for string, replacement in replacements.items():
+            text = text.replace(string, replacement)
 
-    return text
+    elif annotationType in ["accents", "tones"]:
+        pass
+
+    else:
+        raise ValueError
+
+    return StringIO(text)
+
+
+def read_file(inputFile):
+
+    # Use ISO 8859-1 (Western European) encoding to open TSV file containing the annotations
+    with open(inputFile, "r", encoding="iso-8859-1") as f:
+        # Don't save any lines until a lone hash sign is found in the line
+        # This signifies the end of the metadata and start of the data block
+        while f.readline() != "#\n":
+            pass
+        rawContent = f.read()
+
+    return rawContent
