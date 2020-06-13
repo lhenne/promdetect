@@ -1,3 +1,5 @@
-prep/__pycache__
+promdetect/prep/__pycache__
+promdetect/__pycache__
 *conflicted copy*
 .vscode/*
+promdetect.egg-info/*
