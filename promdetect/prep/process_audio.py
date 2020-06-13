@@ -56,8 +56,6 @@ def get_f0(pitchObj, annotationData, unit):
     return f0Values
 
 
-# Get intensity values for all accent annotations in a recording through Praat
-
 def get_accent_f0_excursion(soundObj, accentData, transcriptData):
 
     excursionValues = list()

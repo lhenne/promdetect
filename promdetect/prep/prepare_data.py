@@ -7,9 +7,9 @@ Import necessary packages:
 import pandas as pd
 import parselmouth as pm
 
-import process_annotations as annotations
-import get_speaker_info as speaker
-import process_audio as audio
+import promdetect.prep.process_annotations as annotations
+import promdetect.prep.get_speaker_info as speaker
+import promdetect.prep.process_audio as audio
 
 """
 The functions in this module reformat the data from the DIRNDL corpus in order
