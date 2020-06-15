@@ -112,7 +112,7 @@ def get_word_intensity(soundObj, transcriptData):
         # Otherwise, create an intensity contour (parselmouth intensity object) just for the word,
         # with minimum speaker pitch of 50Hz
         else:
-            intensityObjWord = soundObjWord.to_intensity(minimum_pitch=50)
+            intensityObjWord = soundObjWord.to_intensity(minimum_pitch=60)
 
             # Get the minimum, maximum and mean intensity under the duration of the word production
             min_intensity = intensityObjWord.get_minimum()
