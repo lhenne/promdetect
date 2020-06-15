@@ -21,7 +21,9 @@ Import necessary packages:
 
 import parselmouth as pm
 from parselmouth.praat import call
+import pandas as pd
 import re
+from io import StringIO
 from glob import glob
 
 silenceThreshold = -25
@@ -129,6 +131,80 @@ def determine_nucleus_points(soundFile):
             voicedPeakTimings.append(validPeakTimings[validPeakIndex])
 
     return voicedPeakTimings
+
+
+def get_nucleus_durations_labels(recordingFile, syllableNuclei):
+
+    # Create list of characters that can signify vowel sounds in SAMPA
+    sampaVowels = ["a:", "e:", "i:", "o:", "u:", "E:", "2:",
+                   "y:", "a", "E", "I", "O", "U", "Y", "9",
+                   "@", "6", "OY", "aI", "aU", "6", "_6", "m",
+                   "n", "l", "N", "_9", "_2:"]
+
+    # Get phone labels (automatically generated, then manually checked) for the current recording
+    phoneFile = re.search(".*[ \w-]+?(?=\.)", recordingFile)[0] + ".phones"
+
+    # Use ISO 8859-1 (Western European) encoding to open TSV file containing the phone labels
+    with open(phoneFile, "r", encoding="iso-8859-1") as f:
+        # Don't save any lines until a lone hash sign is found in the line
+        # This signifies the end of the metadata and start of the data block
+        while f.readline() != "#\n":
+            pass
+        rawContent = f.read()
+
+    # Clean and convert to a StringIO object to be able to parse it with pandas
+    content = StringIO(re.sub(r" {2,}", " ", rawContent))
+
+    # Create a pandas DataFrame from the data
+    phoneData = pd.read_csv(content,
+                            sep=" ",
+                            engine="python",
+                            quoting=3,
+                            names=["idx",
+                                   "end",
+                                   "xwaves",
+                                   "label"]).drop(["idx"], axis=1)
+
+    # Create an empty column to which the start timestamps for each word will be assigned
+    phoneData["start"] = None
+
+    # Iterate over the rows of phoneData, and use the 'end' timestamp from the preceding row
+    # to derive the 'start' timestamp for the current one.
+    # The 'start' timestamp is estimated by adding 10 milliseconds to the 'end' timestamp of the previous word
+    for i in phoneData.index:
+        if i <= len(phoneData.index) and i > 0:
+            phoneData.at[i, "start"] = phoneData.loc[i - 1,
+                                                     "end"] + 0.001
+        elif i == 0:
+            phoneData.at[i, "start"] = 0
+
+    # Convert the values in column 'start' to float64 so they can be directly compared with nucleus timestamps
+    phoneData.astype({"start": "float64"})
+
+    # Create an empty list to store labels and timestamps in
+    nucleiWithLabels = list()
+
+    # Locate the label corresponding to each syllable nucleus timestamp
+    # If the label is a vowel sound label, add the combination to the list of confirmed syllable nuclei
+    for nucleusTiming in syllableNuclei:
+        nucleusRow = phoneData.loc[(phoneData["start"] <= nucleusTiming) & (
+            phoneData["end"] >= nucleusTiming)]
+
+        if len(nucleusRow) == 1:
+            nucleusStart = nucleusRow.iloc[0]["start"]
+            nucleusEnd = nucleusRow.iloc[0]["end"]
+            nucleusLabel = nucleusRow.iloc[0]["label"]
+
+            if nucleusLabel in sampaVowels:
+                nucleiWithLabels.append(
+                    (nucleusStart, nucleusEnd, nucleusTiming, nucleusLabel))
+            else:
+                print("Nucleus at time", nucleusTiming, "with label",
+                      nucleusLabel, "is not a vowel or sonorant nucleus")
+
+    nucleiWithLabels = pd.DataFrame.from_records(nucleiWithLabels, columns=["start", "end", "timestamp_auto", "label"])
+
+    return nucleiWithLabels
 
 
 def run_for_all_files():
