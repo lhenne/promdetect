@@ -138,48 +138,11 @@ def get_nucleus_durations_labels(recordingFile, syllableNuclei):
     # Create list of characters that can signify vowel sounds in SAMPA
     sampaVowels = ["a:", "e:", "i:", "o:", "u:", "E:", "2:",
                    "y:", "a", "E", "I", "O", "U", "Y", "9",
-                   "@", "6", "OY", "aI", "aU", "6", "_6", "m",
+                   "@", "6", "OY", "aI", "aU", "_6", "m",
                    "n", "l", "N", "_9", "_2:"]
 
-    # Get phone labels (automatically generated, then manually checked) for the current recording
-    phoneFile = re.search(".*[ \w-]+?(?=\.)", recordingFile)[0] + ".phones"
-
-    # Use ISO 8859-1 (Western European) encoding to open TSV file containing the phone labels
-    with open(phoneFile, "r", encoding="iso-8859-1") as f:
-        # Don't save any lines until a lone hash sign is found in the line
-        # This signifies the end of the metadata and start of the data block
-        while f.readline() != "#\n":
-            pass
-        rawContent = f.read()
-
-    # Clean and convert to a StringIO object to be able to parse it with pandas
-    content = StringIO(re.sub(r" {2,}", " ", rawContent))
-
-    # Create a pandas DataFrame from the data
-    phoneData = pd.read_csv(content,
-                            sep=" ",
-                            engine="python",
-                            quoting=3,
-                            names=["idx",
-                                   "end",
-                                   "xwaves",
-                                   "label"]).drop(["idx"], axis=1)
-
-    # Create an empty column to which the start timestamps for each word will be assigned
-    phoneData["start"] = None
-
-    # Iterate over the rows of phoneData, and use the 'end' timestamp from the preceding row
-    # to derive the 'start' timestamp for the current one.
-    # The 'start' timestamp is estimated by adding 10 milliseconds to the 'end' timestamp of the previous word
-    for i in phoneData.index:
-        if i <= len(phoneData.index) and i > 0:
-            phoneData.at[i, "start"] = phoneData.loc[i - 1,
-                                                     "end"] + 0.001
-        elif i == 0:
-            phoneData.at[i, "start"] = 0
-
-    # Convert the values in column 'start' to float64 so they can be directly compared with nucleus timestamps
-    phoneData.astype({"start": "float64"})
+    phoneData = prepare_df("phones", recordingFile)
+    wordData = prepare_df("words", recordingFile)
 
     # Create an empty list to store labels and timestamps in
     nucleiWithLabels = list()
@@ -196,15 +159,75 @@ def get_nucleus_durations_labels(recordingFile, syllableNuclei):
             nucleusLabel = nucleusRow.iloc[0]["label"]
 
             if nucleusLabel in sampaVowels:
-                nucleiWithLabels.append(
-                    (nucleusStart, nucleusEnd, nucleusTiming, nucleusLabel))
+
+                wordRow = wordData.loc[(wordData["start"] <= nucleusTiming) & (
+                    wordData["end"] >= nucleusTiming)]
+
+                if (len(wordRow) == 1) & (wordRow.iloc[0]["label"] not in ["[@]", "[t]", "[n]", "[f]", "[h]", "<P>"]):
+                    wordLabel = wordRow.iloc[0]["label"]
+                    nucleiWithLabels.append(
+                        (nucleusStart, nucleusEnd, nucleusTiming, nucleusLabel, wordLabel))
+                else:
+                    print("Suggested nucleus at time",
+                          nucleusTiming, "with label", nucleusLabel, "is not part of a word")
             else:
                 print("Nucleus at time", nucleusTiming, "with label",
                       nucleusLabel, "is not a vowel or sonorant nucleus")
 
-    nucleiWithLabels = pd.DataFrame.from_records(nucleiWithLabels, columns=["start", "end", "timestamp_auto", "label"])
+    nucleiWithLabels = pd.DataFrame.from_records(
+        nucleiWithLabels, columns=["start", "end", "timestamp_auto", "phone_label", "word_label"])
 
     return nucleiWithLabels
+
+
+def prepare_df(annotationType, recordingFile):
+
+    # Get annotation labels for the current recording
+    if annotationType == "phones":
+        annotationFile = re.search(
+            ".*[ \w-]+?(?=\.)", recordingFile)[0] + ".phones"
+    elif annotationType == "words":
+        annotationFile = re.search(
+            ".*[ \w-]+?(?=\.)", recordingFile)[0] + ".words"
+
+    # Use ISO 8859-1 (Western European) encoding to open TSV file containing the phone labels
+    with open(annotationFile, "r", encoding="iso-8859-1") as f:
+        # Don't save any lines until a lone hash sign is found in the line
+        # This signifies the end of the metadata and start of the data block
+        while f.readline() != "#\n":
+            pass
+        rawContent = f.read()
+
+    # Clean and convert to a StringIO object to be able to parse it with pandas
+    content = StringIO(re.sub(r" {2,}", " ", rawContent))
+
+    # Create a pandas DataFrame from the data
+    annotationData = pd.read_csv(content,
+                                 sep=" ",
+                                 engine="python",
+                                 quoting=3,
+                                 names=["idx",
+                                        "end",
+                                        "xwaves",
+                                        "label"]).drop(["idx"], axis=1)
+
+    # Create an empty column to which the start timestamps for each word will be assigned
+    annotationData["start"] = None
+
+    # Iterate over the rows of phoneData, and use the 'end' timestamp from the preceding row
+    # to derive the 'start' timestamp for the current one.
+    # The 'start' timestamp is estimated by adding 10 milliseconds to the 'end' timestamp of the previous word
+    for i in annotationData.index:
+        if i <= len(annotationData.index) and i > 0:
+            annotationData.at[i, "start"] = annotationData.loc[i - 1,
+                                                               "end"] + 0.001
+        elif i == 0:
+            annotationData.at[i, "start"] = 0
+
+    # Convert the values in columns 'start' and 'end' to float64 so they can be directly compared with nucleus timestamps
+    annotationData.astype({"start": "float64", "end": "float64"})
+
+    return annotationData
 
 
 def run_for_all_files():
@@ -216,13 +239,16 @@ def run_for_all_files():
 
         syllableNuclei = determine_nucleus_points(wavFile)
 
+        nucleiWithDurations = get_nucleus_durations_labels(
+            wavFile, syllableNuclei)
+
         outputPath = "data/dirndl/nuclei/" + \
             re.search("[ \w-]+?(?=\.)", wavFile)[0] + ".nuclei"
         with open(outputPath, "w+") as outputFile:
-            for nucleus in syllableNuclei:
-                outputFile.write(str(nucleus) + "\n")
+            nucleiWithDurations.to_csv(outputFile, sep=",")
 
 
+run_for_all_files()
 # To save the nucleus data to a Praat TextGrid, uncomment and include the following lines:
 # call(textGridObj, "Insert point tier", 1, "nuclei")
 # for i in range(len(voicedPeakTimings)):
