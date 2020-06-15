@@ -145,12 +145,3 @@ class DataPreparation:
             self.accents,
             self.transcript
         )
-
-
-# Initialize an instance of the DataPreparation class for an example recording and run
-# the annotation and audio processing functions on it to prepare the data for further use
-a = DataPreparation(
-    "/home/lukas/Dokumente/Uni/ma_thesis/quelldaten/DIRNDL-prosody",
-    "200703271500")
-a.transform_annotations()
-a.compute_audio_values()
