@@ -10,6 +10,7 @@ import re
 
 def get_gender(recordingID):
 
+    speakerGender = "unknown"
     # Use speaker info text file to collect all data
     with open("/home/lukas/Dokumente/Uni/ma_thesis/quelldaten/DIRNDL-prosody/speakers-prosodically-annotated-part.txt", "r") as speakerFile:
         # Search by line if it includes the current recording's ID
@@ -33,6 +34,7 @@ def get_gender(recordingID):
 
 def get_id(recordingID):
 
+    speakerID = "unknown"
     # Use speaker info text file to collect all data
     with open("/home/lukas/Dokumente/Uni/ma_thesis/quelldaten/DIRNDL-prosody/speakers-prosodically-annotated-part.txt", "r") as speakerFile:
         # Search by line if it includes the current recording's ID
@@ -40,4 +42,9 @@ def get_id(recordingID):
             if recordingID in line:
                 # Extract the ID (a number) of the speaker
                 speakerID = re.findall(r"[0-9 ]+SP([0-9]?)[fm]", line)[0]
-    return speakerID
+
+    if re.match(r"[0-9]+", speakerID):
+        return speakerID
+    else:
+        print("Speaker ID is:", speakerID)
+        raise ValueError
