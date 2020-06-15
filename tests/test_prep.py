@@ -3,38 +3,61 @@ Code to test functions in the `prep` submodule
 """
 
 import unittest
-import promdetect.prep.find_syllable_nuclei as syllable_nuclei
-import promdetect.prep.get_speaker_info as speaker_info
+from promdetect.prep import find_syllable_nuclei, get_speaker_info, prepare_data, process_annotations, process_audio
 from parselmouth import PraatError
 
 
 class TestFindSyllableNuclei(unittest.TestCase):
 
     def test_that_fun_outputs_correct_data_types(self):
-        output = syllable_nuclei.determine_nucleus_points("/home/lukas/Dokumente/Uni/ma_thesis/quelldaten/DIRNDL-prosody/dlf-nachrichten-200703251100.wav")
+        output = find_syllable_nuclei.determine_nucleus_points(
+            "/home/lukas/Dokumente/Uni/ma_thesis/quelldaten/DIRNDL-prosody/dlf-nachrichten-200703251100.wav")
         self.assertIsInstance(output, list)
         self.assertIsInstance(output[0], float)
         self.assertIsInstance(output[-1], float)
 
     def test_that_fun_fails_when_input_is_wrong_type(self):
-        self.assertRaises(ValueError, syllable_nuclei.determine_nucleus_points, 42)
+        self.assertRaises(
+            ValueError, find_syllable_nuclei.determine_nucleus_points, 42)
 
     def test_that_fun_fails_if_file_is_not_right_format(self):
-        self.assertRaises(PraatError, syllable_nuclei.determine_nucleus_points, "lorem")
+        self.assertRaises(
+            PraatError, find_syllable_nuclei.determine_nucleus_points, "lorem")
 
 
 class TestGetSpeakerInfo(unittest.TestCase):
 
     def test_that_funs_output_correct_data_type(self):
-        self.assertIsInstance(speaker_info.get_gender("200703271500"), str)
-        self.assertIsInstance(speaker_info.get_id("200703271500"), str)
+        self.assertIsInstance(get_speaker_info.get_gender("200703271500"), str)
+        self.assertIsInstance(get_speaker_info.get_id("200703271300"), str)
 
     def test_that_funs_fail_when_input_is_wrong_type(self):
-        self.assertRaises(TypeError, speaker_info.get_gender, [42, 63])
-        self.assertRaises(TypeError, speaker_info.get_id, [52, 73])
-        self.assertRaises(TypeError, speaker_info.get_gender, list)
-        self.assertRaises(TypeError, speaker_info.get_id, str)
+        self.assertRaises(TypeError, get_speaker_info.get_gender, [42, 63])
+        self.assertRaises(TypeError, get_speaker_info.get_id, [52, 73])
+        self.assertRaises(TypeError, get_speaker_info.get_gender, list)
+        self.assertRaises(TypeError, get_speaker_info.get_id, str)
 
     def test_that_funs_fail_when_input_is_not_found(self):
-        self.assertRaises(ValueError, speaker_info.get_gender, "20071234567")
-        self.assertRaises(ValueError, speaker_info.get_id, "20079876543")
+        self.assertRaises(
+            ValueError, get_speaker_info.get_gender, "20071234567")
+        self.assertRaises(ValueError, get_speaker_info.get_id, "20079876543")
+
+
+class TestPrepareData(unittest.TestCase):
+
+    def test_that_metadata_is_generated_correctly(self):
+        initializedInstance = prepare_data.DataPreparation(
+            "/home/lukas/Dokumente/Uni/ma_thesis/quelldaten/DIRNDL-prosody",
+            "200703271300")
+        self.assertEqual(initializedInstance.transcriptFile,
+                         "/home/lukas/Dokumente/Uni/ma_thesis/quelldaten/DIRNDL-prosody/dlf-nachrichten-200703271300.words")
+        self.assertEqual(initializedInstance.tonesFile,
+                         "/home/lukas/Dokumente/Uni/ma_thesis/quelldaten/DIRNDL-prosody/dlf-nachrichten-200703271300.tones")
+        self.assertEqual(initializedInstance.accentsFile,
+                         "/home/lukas/Dokumente/Uni/ma_thesis/quelldaten/DIRNDL-prosody/dlf-nachrichten-200703271300.accents")
+        self.assertEqual(initializedInstance.speakerGender, "male")
+        self.assertEqual(initializedInstance.speakerID, "7")
+
+    def test_that_funs_fail_when_input_is_not_found(self):
+        with self.assertRaises(FileNotFoundError):
+            prepare_data.DataPreparation("test", "string")
