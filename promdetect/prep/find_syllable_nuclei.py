@@ -199,7 +199,7 @@ def prepare_df(annotationType, recordingFile):
         rawContent = f.read()
 
     # Clean and convert to a StringIO object to be able to parse it with pandas
-    content = StringIO(re.sub(r" {2,}", " ", rawContent))
+    content = clean_text(rawContent, annotationType)
 
     # Create a pandas DataFrame from the data
     annotationData = pd.read_csv(content,
@@ -228,6 +228,35 @@ def prepare_df(annotationType, recordingFile):
     annotationData.astype({"start": "float64", "end": "float64"})
 
     return annotationData
+
+
+def clean_text(rawText, annotationType):
+    # Reduce all instances two or more consecutive whitespaces to one whitespace
+    text = re.sub(r" {2,}", " ", rawText)
+
+    if annotationType == "words":
+        #  Replace escaped Umlaut with proper ones
+        replacements = {
+            "\"u": "ü",
+            "\"U": "Ü",
+            "\"a": "ä",
+            "\"A": "Ä",
+            "\"o": "ö",
+            "\"O": "Ö",
+            "\"s": "ß",
+            "\"S": "ß"
+        }
+
+        for string, replacement in replacements.items():
+            text = text.replace(string, replacement)
+
+    elif annotationType == "phones":
+        pass
+
+    else:
+        raise ValueError
+
+    return StringIO(text)
 
 
 def run_for_all_files():
