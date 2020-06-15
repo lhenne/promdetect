@@ -41,7 +41,7 @@ def get_id(recordingID):
         for line in speakerFile:
             if recordingID in line:
                 # Extract the ID (a number) of the speaker
-                speakerID = re.findall(r"[0-9 ]+SP([0-9]?)[fm]", line)[0]
+                speakerID = re.findall(r"[0-9 \t]+SP([0-9]?)[fm]", line)[0]
 
     if re.match(r"[0-9]+", speakerID):
         return speakerID
