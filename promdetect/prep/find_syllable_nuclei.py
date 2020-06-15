@@ -28,9 +28,6 @@ silenceThreshold = -25
 minDipBetweenPeaks = 2
 minPauseDuration = 0.3
 
-recordings = glob(
-    "/home/lukas/Dokumente/Uni/ma_thesis/quelldaten/DIRNDL-prosody/*.wav")
-
 
 def determine_nucleus_points(soundFile):
     rawSoundObj = pm.Sound(soundFile)
@@ -134,15 +131,20 @@ def determine_nucleus_points(soundFile):
     return voicedPeakTimings
 
 
-for wavFile in recordings:
+def run_for_all_files():
 
-    syllableNuclei = determine_nucleus_points(wavFile)
+    recordings = glob(
+        "/home/lukas/Dokumente/Uni/ma_thesis/quelldaten/DIRNDL-prosody/*.wav")
 
-    outputPath = "data/dirndl/nuclei/" + \
-        re.search("[ \w-]+?(?=\.)", wavFile)[0] + ".nuclei"
-    with open(outputPath, "w+") as outputFile:
-        for nucleus in syllableNuclei:
-            outputFile.write(str(nucleus) + "\n")
+    for wavFile in recordings:
+
+        syllableNuclei = determine_nucleus_points(wavFile)
+
+        outputPath = "data/dirndl/nuclei/" + \
+            re.search("[ \w-]+?(?=\.)", wavFile)[0] + ".nuclei"
+        with open(outputPath, "w+") as outputFile:
+            for nucleus in syllableNuclei:
+                outputFile.write(str(nucleus) + "\n")
 
 
 # To save the nucleus data to a Praat TextGrid, uncomment and include the following lines:
