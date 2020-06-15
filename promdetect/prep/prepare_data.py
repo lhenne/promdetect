@@ -6,6 +6,7 @@ Import necessary packages:
 
 import pandas as pd
 import parselmouth as pm
+from os import path
 
 import promdetect.prep.process_annotations as annotations
 import promdetect.prep.get_speaker_info as speaker
@@ -41,9 +42,12 @@ class DataPreparation:
             recordingID
         )
 
-        # Get gender and ID of speaker
-        self.speakerGender = speaker.get_gender(recordingID)
-        self.speakerID = speaker.get_id(recordingID)
+        if path.isfile(self.transcriptFile) and path.isfile(self.tonesFile) and path.isfile(self.accentsFile) and path.isfile(self.wavFile):
+            # Get gender and ID of speaker
+            self.speakerGender = speaker.get_gender(recordingID)
+            self.speakerID = speaker.get_id(recordingID)
+        else:
+            raise FileNotFoundError
 
     def transform_annotations(self):
 
