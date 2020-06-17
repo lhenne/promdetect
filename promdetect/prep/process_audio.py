@@ -7,12 +7,13 @@ Import necessary packages:
 """
 
 import parselmouth as pm
-from parselmouth.praat import call
+from parselmouth import praat
 import numpy as np
 import math
 
 
 # Intensity functions
+
 
 def get_intensity(intensityObj, annotationData):
 
@@ -28,6 +29,7 @@ def get_intensity(intensityObj, annotationData):
 
 # F0 functions
 
+
 def get_f0(pitchObj, annotationData, unit):
 
     # Depending on the unit of measurement given as a function parameter, convert to a suitable parameter
@@ -37,8 +39,10 @@ def get_f0(pitchObj, annotationData, unit):
     elif unit == "ERB":
         unit = pm.PitchUnit.ERB
     else:
-        print("Function get_f0: \
-           Please provide appropriate unit of measurement")
+        print(
+            "Function get_f0: \
+           Please provide appropriate unit of measurement"
+        )
         raise ValueError
 
     # Create an empty list and iterate over rows of the annotation DataFrame to add F0 point values
@@ -46,26 +50,19 @@ def get_f0(pitchObj, annotationData, unit):
     f0Values = list()
 
     for row in annotationData.itertuples(index=False):
-        f0Values.append(pitchObj.get_value_at_time(
-            time=row.time,
-            unit=unit
-        )
-        )
+        f0Values.append(pitchObj.get_value_at_time(time=row.time, unit=unit))
 
     return f0Values
 
 
-def get_accent_f0_excursion(soundObj, accentData, transcriptData):
+def get_accent_f0_excursion(pitchObj, accentData, transcriptData):
 
     excursionValues = list()
 
     for row in accentData.itertuples(index=False):
-        accentTimestamp = row.time
         accentF0 = row.f0_hz
 
-        wordAtTimestamp = transcriptData.loc[
-            (transcriptData["start"] <= accentTimestamp) & (transcriptData["end"] >= accentTimestamp)]
-        lowEndF0 = wordAtTimestamp.min_f0_hz
+        lowEndF0 = praat.call(pitchObj, "Get quantile", 0, 0, 0.05, "Hertz")
 
         f0Excursion = math.log2(accentF0 / lowEndF0)
 
@@ -88,21 +85,20 @@ def get_word_intensity(soundObj, transcriptData):
     # the audio recording corresponding to the labelled word
     for row in transcriptData.itertuples(index=False):
 
-        soundObjWord = soundObj.extract_part(
-            from_time=row.start,
-            to_time=row.end
-        )
+        soundObjWord = soundObj.extract_part(from_time=row.start, to_time=row.end)
 
         # Don't measure intensity in two cases:
         # (a) The word duration is too short to provide enough material for the calculation
         #     Praat requires the duration to be at least 6.4 divided by the minimum pitch (~0.106s)
         # (b) The label for the word indicates that it is a phrase boundary or breathing sound
-        if soundObjWord.total_duration < 0.106 or row.label in ["[@]",
-                                                                "[t]",
-                                                                "[n]",
-                                                                "[f]",
-                                                                "[h]",
-                                                                "<P>"]:
+        if soundObjWord.total_duration < 0.106 or row.label in [
+            "[@]",
+            "[t]",
+            "[n]",
+            "[f]",
+            "[h]",
+            "<P>",
+        ]:
             # Instead, return NA values
             min_intensity = np.nan
             max_intensity = np.nan
@@ -138,18 +134,17 @@ def get_word_f0(soundObj, transcriptData, unit):
     # The 'unit' parameter of type string does not have to be converted in this case, as the 'call'
     # function later on will just accept the strings
     if unit not in ["Hertz", "ERB"]:
-        print("Function get_word_f0: \
-            Please provide appropriate unit of measurement")
+        print(
+            "Function get_word_f0: \
+            Please provide appropriate unit of measurement"
+        )
         raise ValueError
 
     # Iterating over the rows of the word-level annotation DataFrame, extract the part of
     # the audio recording corresponding to the labelled word
     for row in transcriptData.itertuples(index=False):
 
-        soundObjWord = soundObj.extract_part(
-            from_time=row.start,
-            to_time=row.end
-        )
+        soundObjWord = soundObj.extract_part(from_time=row.start, to_time=row.end)
 
         # Don't measure F0 if the label for the word indicates a phrase boundary or breathing sound
         if row.label in ["[@]", "[t]", "[n]", "[f]", "[h]", "<P>"]:
@@ -163,23 +158,9 @@ def get_word_f0(soundObj, transcriptData, unit):
             pitchObjWord = soundObjWord.to_pitch()
 
             # Get the minimum, maximum and mean F0 under the duration of the word production
-            min_f0 = call(pitchObjWord,
-                          "Get minimum",
-                          0,
-                          0,
-                          unit,
-                          "Parabolic")
-            max_f0 = call(pitchObjWord,
-                          "Get maximum",
-                          0,
-                          0,
-                          unit,
-                          "Parabolic")
-            mean_f0 = call(pitchObjWord,
-                           "Get mean",
-                           0,
-                           0,
-                           unit)
+            min_f0 = praat.call(pitchObjWord, "Get minimum", 0, 0, unit, "Parabolic")
+            max_f0 = praat.call(pitchObjWord, "Get maximum", 0, 0, unit, "Parabolic")
+            mean_f0 = praat.call(pitchObjWord, "Get mean", 0, 0, unit)
 
         # Create a 3-tuple out of these measurements and append it to the output list
         word_values = tuple([min_f0, max_f0, mean_f0])

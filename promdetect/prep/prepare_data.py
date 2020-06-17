@@ -142,10 +142,9 @@ class DataPreparation:
                                      tmpWordPitchERB],
                                     axis=1)
 
-        # TODO: check if excursion measurements are proper
         # Get F0 (pitch) excursion measurements for accent annotations in semitones using a standard formula
         self.accents["f0_excursion"] = audio.get_accent_f0_excursion(
-            soundObj,
+            pitchObj,
             self.accents,
             self.transcript
         )
