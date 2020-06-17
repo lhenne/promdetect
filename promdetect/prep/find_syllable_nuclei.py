@@ -61,7 +61,6 @@ def determine_nucleus_points(soundFile):
     intensityObj = soundObj.to_intensity(minimum_pitch=50)
 
     # Get basic measurements from the sound and intensity objects
-    totalDuration = soundObj.get_total_duration()
     minIntensity = intensityObj.get_minimum()
     maxIntensity = intensityObj.get_maximum()
 
@@ -146,7 +145,7 @@ def determine_nucleus_points(soundFile):
 
         if peakIndex > 0:
             precedingPeak = peakIndex - 1
-            precedingTiming = peakTimings[peakIndex - 1]
+            precedingTiming = peakTimings[precedingPeak]
 
             # Get the intensity value at the local minimum following the peak
             followingDipIntensity = praat.call(
