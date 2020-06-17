@@ -10,7 +10,6 @@ import parselmouth as pm
 from parselmouth.praat import call
 import numpy as np
 import math
-import pandas as pd
 
 
 # Intensity functions
