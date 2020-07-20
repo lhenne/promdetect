@@ -3,3 +3,4 @@
 .vscode/*
 promdetect.egg-info/*
 data/*
+promdetect/analysis/.ipynb_checkpoints/analyze_dirndl-checkpoint.ipynb
