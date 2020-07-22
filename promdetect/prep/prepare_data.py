@@ -11,6 +11,7 @@ from os import path
 import promdetect.prep.process_annotations as annotations
 import promdetect.prep.get_speaker_info as speaker
 import promdetect.prep.process_audio as audio
+import promdetect.prep.find_syllable_nuclei as find_nuclei
 
 """
 The functions in this module reformat the data from the DIRNDL corpus in order
@@ -148,3 +149,9 @@ class DataPreparation:
             self.accents,
             self.transcript
         )
+
+    def get_nuclei(self):
+        
+        # Get syllable nuclei
+        nuclei = find_nuclei.determine_nucleus_points(self.wavFile)
+        self.nuclei = find_nuclei.get_nucleus_durations_labels(self.wavFile, nuclei)
