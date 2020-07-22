@@ -155,3 +155,7 @@ class DataPreparation:
         # Get syllable nuclei
         nuclei = find_nuclei.determine_nucleus_points(self.wavFile)
         self.nuclei = find_nuclei.get_nucleus_durations_labels(self.wavFile, nuclei)
+
+    def get_all_nuclei(self):
+        
+        find_nuclei.run_for_all_files()
