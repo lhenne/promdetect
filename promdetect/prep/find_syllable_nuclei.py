@@ -344,9 +344,9 @@ def prepare_df(annotationType, recordingFile):
 
     # Get annotation labels for the current recording
     if annotationType == "phones":
-        annotationFile = re.search(".*[ \w-]+?(?=\.)", recordingFile)[0] + ".phones"
+        annotationFile = re.search(r".*[ \w-]+?(?=\.)", recordingFile)[0] + ".phones"
     elif annotationType == "words":
-        annotationFile = re.search(".*[ \w-]+?(?=\.)", recordingFile)[0] + ".words"
+        annotationFile = re.search(r".*[ \w-]+?(?=\.)", recordingFile)[0] + ".words"
 
     # Use ISO 8859-1 (Western European) encoding to open TSV file containing the phone labels
     with open(annotationFile, "r", encoding="iso-8859-1") as f:
@@ -435,7 +435,7 @@ def run_for_all_files():
 
         # Output the pandas DataFrame to one separate file per recording
         outputPath = (
-            "data/dirndl/nuclei/" + re.search("[ \w-]+?(?=\.)", wavFile)[0] + ".nuclei"
+            "data/dirndl/nuclei/" + re.search(r"[ \w-]+?(?=\.)", wavFile)[0] + ".nuclei"
         )
 
         with open(outputPath, "w+") as outputFile:
