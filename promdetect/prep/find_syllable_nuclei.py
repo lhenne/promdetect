@@ -342,6 +342,7 @@ def get_nucleus_durations_labels(recordingFile, syllableNuclei):
 
 def prepare_df(annotationType, recordingFile):
 
+    annotationFile = None  # assignment to avoid linter warnings
     # Get annotation labels for the current recording
     if annotationType == "phones":
         annotationFile = re.search(r".*[ \w-]+?(?=\.)", recordingFile)[0] + ".phones"
@@ -435,7 +436,7 @@ def run_for_all_files():
 
         # Output the pandas DataFrame to one separate file per recording
         outputPath = (
-            "data/dirndl/nuclei/" + re.search(r"[ \w-]+?(?=\.)", wavFile)[0] + ".nuclei"
+            "/home/lukas/Dokumente/Uni/ma_thesis/promdetect/data/dirndl/nuclei/" + re.search(r"[ \w-]+?(?=\.)", wavFile)[0] + ".nuclei"
         )
 
         with open(outputPath, "w+") as outputFile:
