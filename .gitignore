@@ -1,6 +1,8 @@
 *__pycache__*
 *conflicted copy*
-.vscode/*
-promdetect.egg-info/*
-data/*
+.vscode
+promdetect.egg-info
+data
 promdetect/analysis/.ipynb_checkpoints/analyze_dirndl-checkpoint.ipynb
+tests/test_material
+doc
