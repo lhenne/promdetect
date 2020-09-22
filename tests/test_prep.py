@@ -85,3 +85,25 @@ class AnnotationImportTests(unittest.TestCase):
         self.assertFalse("xwaves" in output_df.columns)
         self.assertTrue("label" in output_df.columns)
         self.assertTrue(len(output_df.index) == 3)
+
+    def test_invalid_id(self):
+        """
+        Test get_speaker_info(): Does an invalid recording ID as input raise the appropriate error?
+        """
+
+        recording_id = "notarealid2005-08-20-1500"
+
+        with self.assertRaises(ValueError):
+            process_annotations.get_speaker_info(recording_id)
+
+    def test_speaker_info(self):
+        """
+        Test get_speaker_info(): Does the function return the correct data for a given recording?
+        """
+
+        recording_id = "200703260600"
+        correct_output = ("2", "f")
+
+        self.assertTrue(
+            process_annotations.get_speaker_info(recording_id) == correct_output
+        )
