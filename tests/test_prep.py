@@ -16,7 +16,7 @@ class AnnotationImportTests(unittest.TestCase):
         Test read_file(): Are files imported with the correct formatting?
         """
 
-        input_file = "/home/lukas/Dokumente/Uni/ma_thesis/promdetect/tests/test_material/test.accents"
+        input_file = "tests/test_material/test.accents"
 
         correct_output = "    17.748754  121 H*L\n    19.194136  121 H*\n\n"
 
@@ -30,7 +30,7 @@ class AnnotationImportTests(unittest.TestCase):
         input_text = '    das\n      k"onnte besser auss"ahen\n\n'
         annotation_type = "words"
 
-        correct_output = "das\n könnte besser aussähen\n\n"
+        correct_output = "das\nkönnte besser aussähen\n\n"
 
         self.assertEqual(
             process_annotations.clean_text(input_text, annotation_type), correct_output
@@ -41,7 +41,7 @@ class AnnotationImportTests(unittest.TestCase):
         Test get_annotation_data(): Do invalid input types produce an error?
         """
 
-        annotation_file = "/home/lukas/Dokumente/Uni/ma_thesis/promdetect/tests/test_material/test.phrases"
+        annotation_file = "tests/test_material/test.phrases"
 
         with self.assertRaises(ValueError):
             process_annotations.get_annotation_data(annotation_file)
@@ -61,7 +61,7 @@ class AnnotationImportTests(unittest.TestCase):
         Test get_annotation_data(): Does the function return the correct output for a file containing accent labels?
         """
 
-        annotation_file = "test_material/test.accents"
+        annotation_file = "tests/test_material/test.accents"
 
         output_df = process_annotations.get_annotation_data(annotation_file)
 
@@ -76,7 +76,7 @@ class AnnotationImportTests(unittest.TestCase):
         Test get_annotation_data(): Does the function return the correct output for a file containing word labels?
         """
 
-        annotation_file = "test_material/test.words"
+        annotation_file = "tests/test_material/test.words"
 
         output_df = process_annotations.get_annotation_data(annotation_file)
 
