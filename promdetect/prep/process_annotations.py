@@ -2,13 +2,16 @@
 Import necessary packages:
 `re` for regular expressions
 `pandas` for providing a data structure to store the CSV data in within Python
-`StringIO` to provide an object for pandas functions to parse
+`io.StringIO` to provide an object for pandas functions to parse
+`pathlib.Path` to conveniently extend supplied relative paths
+`numpy.nan` to insert NaN values where needed
 """
 
 import re
 import pandas as pd
 from io import StringIO
 from pathlib import Path
+from numpy import nan
 
 
 def get_annotation_data(annotation_file) -> pd.DataFrame:
@@ -29,7 +32,7 @@ def get_annotation_data(annotation_file) -> pd.DataFrame:
         1:
     ]  # Get annotation type from file extension, but without the dot
 
-    if annotation_type in ["accents", "words", "tones"]:
+    if annotation_type in ["accents", "phones", "tones", "words"]:
         pass
     else:
         raise ValueError("Input file does not contain supported annotation type")
@@ -40,7 +43,7 @@ def get_annotation_data(annotation_file) -> pd.DataFrame:
         clean_text(raw_content, annotation_type)
     )  # Store string in a StringIO object to enable pandas to parse it like a CSV file.
 
-    if annotation_type == "words":
+    if annotation_type in ["phones", "words"]:
         data = pd.read_csv(
             content,
             sep=" ",
@@ -51,16 +54,16 @@ def get_annotation_data(annotation_file) -> pd.DataFrame:
             ["xwaves"], axis=1
         )  # Drop unnecessary xwaves column straight away
 
-        data["start_est"] = None
+        data["start_est"] = nan
 
         num_rows = len(data.index)
 
-        # Add data for estimated start timestamps of each word, which are 10ms after the end timestamp of the previous label (to avoid overlap for now). Set the starting time of the first label to zero.
+        # Add data for estimated start timestamps of each word, which are 10ms after the end timestamp of the previous label (to avoid overlap for now). Set the starting time of the first label to N/A.
         for i in data.index:
             if i <= num_rows and i > 0:
                 data.at[i, "start_est"] = data.loc[i - 1, "end"] + 0.001
-            elif i == 0:
-                data.at[i, "start_est"] = 0
+            else:
+                pass
 
     else:
         data = pd.read_csv(
@@ -108,8 +111,7 @@ def get_speaker_info(recording_id):
             raise ValueError("Supplied recording ID could not be found.")
 
 
-# Ancillary functions
-
+# ANCILLARY FUNCTIONS
 
 def clean_text(raw_text, annotation_type) -> str:
     # Reduce all instances two or more consecutive whitespaces to one whitespace, remove leading and trailing whitespaces
@@ -132,7 +134,7 @@ def clean_text(raw_text, annotation_type) -> str:
         for string, replacement in replacements.items():
             text = text.replace(string, replacement)
 
-    elif annotation_type in ["accents", "tones"]:
+    elif annotation_type in ["accents", "phones", "tones"]:
         pass
 
     else:
