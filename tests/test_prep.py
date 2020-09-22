@@ -81,10 +81,28 @@ class AnnotationImportTests(unittest.TestCase):
         output_df = process_annotations.get_annotation_data(annotation_file)
 
         self.assertTrue("end" in output_df.columns)
+        self.assertTrue("start_est" in output_df.columns)
         self.assertFalse("time" in output_df.columns)
         self.assertFalse("xwaves" in output_df.columns)
         self.assertTrue("label" in output_df.columns)
         self.assertTrue(len(output_df.index) == 3)
+
+    def test_annotation_phones_output(self):
+        """
+        Test get_annotation_data(): Does the function return the correct output for a file containing phone labels?
+        """
+
+        annotation_file = "tests/test_material/test.phones"
+
+        output_df = process_annotations.get_annotation_data(annotation_file)
+
+        print(output_df)
+        self.assertTrue("end" in output_df.columns)
+        self.assertTrue("start_est" in output_df.columns)
+        self.assertFalse("time" in output_df.columns)
+        self.assertFalse("xwaves" in output_df.columns)
+        self.assertTrue("label" in output_df.columns)
+        self.assertTrue(len(output_df.index) == 5)
 
     def test_invalid_id(self):
         """
