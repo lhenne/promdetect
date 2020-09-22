@@ -76,6 +76,38 @@ def get_annotation_data(annotation_file) -> pd.DataFrame:
     return data
 
 
+def get_speaker_info(recording_id):
+    """
+    This functions reads the file "speakers-prosodically-annotated-part.txt" and finds the supplied recording ID in that file, returning a tuple with the corresponding speaker's ID and gender.
+    The ID will later be used to investigate cross-speaker similarities and differences, the gender is relevant to the calculation of acoustical features.
+    """
+
+    with open(
+        Path(
+            "../quelldaten/DIRNDL-prosody/speakers-prosodically-annotated-part.txt"
+        ).resolve(),
+        "r",
+    ) as speakerFile:
+        found_id = False
+
+        for line in speakerFile:
+            if recording_id in line:
+                found_id = True
+                # Extract ID number of the speaker
+                speaker_id = re.findall(r"[0-9 \t]+SP([0-9]?)[fm]", line)[0]
+                speaker_gender = re.sub(r"[^a-z]*", "", line)
+
+                if speaker_id != "" and speaker_gender in ["m", "f"]:
+                    return (speaker_id, speaker_gender)
+                else:
+                    raise ValueError(
+                        "Speaker ID and/or gender could not be determined."
+                    )
+
+        if not found_id:
+            raise ValueError("Supplied recording ID could not be found.")
+
+
 # Ancillary functions
 
 
