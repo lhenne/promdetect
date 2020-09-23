@@ -18,7 +18,7 @@ def get_annotation_data(annotation_file) -> pd.DataFrame:
     """
     This function reads files containing annotations and processes the data, storing it in a pandas.DataFrame object.
     The type of annotation (e.g. word-level or accent-level) is deduced from the file extension.
-    Unnecessary information from the files is not returned, only timestamps and labels are returned.
+    Unnecessary information from the files is not returned, only timestamps and labels are.
     """
 
     annotation_file = Path(annotation_file).resolve()
@@ -43,38 +43,7 @@ def get_annotation_data(annotation_file) -> pd.DataFrame:
         clean_text(raw_content, annotation_type)
     )  # Store string in a StringIO object to enable pandas to parse it like a CSV file.
 
-    if annotation_type in ["phones", "words"]:
-        data = pd.read_csv(
-            content,
-            sep=" ",
-            engine="python",
-            quoting=3,
-            names=["end", "xwaves", "label"],
-        ).drop(
-            ["xwaves"], axis=1
-        )  # Drop unnecessary xwaves column straight away
-
-        data["start_est"] = nan
-
-        num_rows = len(data.index)
-
-        # Add data for estimated start timestamps of each word, which are 10ms after the end timestamp of the previous label (to avoid overlap for now). Set the starting time of the first label to N/A.
-        for i in data.index:
-            if i <= num_rows and i > 0:
-                data.at[i, "start_est"] = data.loc[i - 1, "end"] + 0.001
-            else:
-                pass
-
-    else:
-        data = pd.read_csv(
-            content,
-            sep=" ",
-            engine="python",
-            quoting=3,
-            names=["time", "xwaves", "label"],
-        ).drop(
-            ["xwaves"], axis=1  # Drop unnecessary xwaves column straight away)
-        )
+    data = content_to_df(content, annotation_type)
 
     return data
 
@@ -112,6 +81,7 @@ def get_speaker_info(recording_id):
 
 
 # ANCILLARY FUNCTIONS
+
 
 def clean_text(raw_text, annotation_type) -> str:
     # Reduce all instances two or more consecutive whitespaces to one whitespace, remove leading and trailing whitespaces
@@ -154,3 +124,46 @@ def read_file(input_file) -> str:
         rawContent = f.read()
 
     return rawContent
+
+
+def content_to_df(content, annotation_type):
+    """
+    This function processes the StringIO object containing annotation file content and returns a cleaned pandas.DataFrame object with added info about estimated start times for phone and word boundaries
+    """
+
+    if annotation_type in ["phones", "words"]:
+        content_as_df = pd.read_csv(
+            content,
+            sep=" ",
+            engine="python",
+            quoting=3,
+            names=["end", "xwaves", "label"],
+        ).drop(
+            ["xwaves"], axis=1
+        )  # Drop unnecessary xwaves column straight away
+
+        content_as_df["start_est"] = nan
+
+        num_rows = len(content_as_df.index)
+
+        # Add data for estimated start timestamps of each word, which are 10ms after the end timestamp of the previous label (to avoid overlap for now). Set the starting time of the first label to N/A.
+        for i in content_as_df.index:
+            if i <= num_rows and i > 0:
+                content_as_df.at[i, "start_est"] = (
+                    content_as_df.loc[i - 1, "end"] + 0.001
+                )
+            else:
+                pass
+
+    else:
+        content_as_df = pd.read_csv(
+            content,
+            sep=" ",
+            engine="python",
+            quoting=3,
+            names=["time", "xwaves", "label"],
+        ).drop(
+            ["xwaves"], axis=1  # Drop unnecessary xwaves column straight away)
+        )
+
+    return content_as_df
