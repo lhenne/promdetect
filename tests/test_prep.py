@@ -3,7 +3,8 @@ Code to test functions in the `prep` submodule
 """
 
 import unittest
-from promdetect.prep import process_annotations
+from pandas import DataFrame
+from promdetect.prep import process_annotations, find_syllable_nuclei
 
 
 class AnnotationImportTests(unittest.TestCase):
@@ -96,7 +97,6 @@ class AnnotationImportTests(unittest.TestCase):
 
         output_df = process_annotations.get_annotation_data(annotation_file)
 
-        print(output_df)
         self.assertTrue("end" in output_df.columns)
         self.assertTrue("start_est" in output_df.columns)
         self.assertFalse("time" in output_df.columns)
@@ -124,4 +124,79 @@ class AnnotationImportTests(unittest.TestCase):
 
         self.assertTrue(
             process_annotations.get_speaker_info(recording_id) == correct_output
+        )
+
+
+class NucleiExtractionTests(unittest.TestCase):
+    """
+    Test that the automatic extraction of syllable nuclei works as expected.
+    """
+
+    def test_filter_vowel_sounds(self):
+        """
+        Are non-vowel labels filtered out correctly by the filter_labels function?
+        """
+
+        phones_df = DataFrame(
+            [
+                [
+                    26.130000,
+                    26.160000,
+                    26.270000,
+                    26.360000,
+                    26.420000,
+                    26.490000,
+                    26.540000,
+                    26.620000,
+                    26.740000,
+                ],
+                ["h", "E", "_6", "k", "l", "E:", "_6", "t", "@"],
+                [
+                    25.871,
+                    26.131,
+                    26.161,
+                    26.271,
+                    26.361,
+                    26.421,
+                    26.491,
+                    26.541,
+                    26.621,
+                ],
+            ],
+            columns=["end", "label", "start_est"],
+        )
+        annotation_type = "phones"
+
+        phones_df_filtered = find_syllable_nuclei.filter_labels(
+            phones_df, annotation_type
+        )
+
+        self.assertTrue(len(phones_df_filtered) == 5)
+        self.assertTrue(
+            list(phones_df_filtered["label"]) == ["E", "_6", "E:", "_6", "@"]
+        )
+
+    def test_filter_breathing_sounds(self):
+        """
+        Are extralinguistic labels (breathing sounds) filtered out correctly by the filter_labels function?
+        """
+
+        words_df = DataFrame(
+            [
+                [25.870000, 26.130000, 26.740000, 27.460000],
+                ["bewirken", "[h]", "erklärte", "Außenminister"],
+                [25.351, 25.871, 26.131, 26.741],
+            ],
+            columns=["end", "label", "start_est"],
+        )
+        annotation_type = "words"
+
+        words_df_filtered = find_syllable_nuclei.filter_labels(
+            words_df, annotation_type
+        )
+
+        self.assertTrue(len(words_df_filtered) == 3)
+        self.assertTrue(
+            list(words_df_filtered["label"])
+            == ["bewirken", "erklärte", "Außenminister"]
         )
