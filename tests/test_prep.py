@@ -228,7 +228,8 @@ class NucleiExtractionTests(unittest.TestCase):
         self.assertTrue(len(assigned_df) == 4)
         self.assertTrue(list(assigned_df["phone"]) == ["E", np.nan, "E:", "@"])
         self.assertTrue(
-            list(assigned_df["word"]) == ["erklärte", "erklärte", "erklärte", "erklärte"]
+            list(assigned_df["word"])
+            == ["erklärte", "erklärte", "erklärte", "erklärte"]
         )
 
     def test_timestamp_assignment(self):
@@ -269,4 +270,33 @@ class NucleiExtractionTests(unittest.TestCase):
         )
 
         self.assertTrue(list(assigned_df["end"]) == [26.16, np.nan, 26.49, 26.74])
-        self.assertTrue(list(assigned_df["start_est"]) == [26.1301, np.nan, 26.4201, 26.6201])
+        self.assertTrue(
+            list(assigned_df["start_est"]) == [26.1301, np.nan, 26.4201, 26.6201]
+        )
+
+    def test_nucleus_extraction(self):
+        """
+        Does get_nucleus_points find more than half of the syllable nuclei that were determined manually in the test file?
+        """
+
+        nuc_timestamps = [
+            (0.4605, 0.5101),
+            (0.7298, 0.7945),
+            (0.8556, 0.9681),
+            (1.2377, 1.3014),
+            (1.3472, 1.4430),
+            (1.5404, 1.5947),
+            (1.7502, 1.8069),
+        ]
+        input_file = "tests/test_material/test.wav"
+
+        nuc_points = find_syllable_nuclei.get_nucleus_points(input_file)
+
+        matches = [
+            point
+            for point in nuc_points
+            for span in nuc_timestamps
+            if (span[0] <= point <= span[1])
+        ]
+
+        self.assertTrue(len(matches) >= len(nuc_timestamps) / 2)
