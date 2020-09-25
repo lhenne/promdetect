@@ -4,6 +4,7 @@ Code to test functions in the `prep` submodule
 
 import unittest
 from pandas import DataFrame
+from pandas.core.construction import array
 from promdetect.prep import process_annotations, find_syllable_nuclei
 
 
@@ -187,3 +188,14 @@ class NucleiExtractionTests(unittest.TestCase):
             list(words_df_filtered["label"])
             == ["bewirken", "erklärte", "Außenminister"]
         )
+
+    def test_point_label_assignment(self):
+        """
+        Are the nucleus points detected by the algorithm assigned to the correct word and phone labels?
+        """
+        
+        nucleus_points = [26.15, 26.46, 26.621]
+        
+    def test_point_duration_assignment(self):
+        """
+        Are the nucleus points detected by the algorithm assigned with the correct duration?

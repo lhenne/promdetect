@@ -146,11 +146,11 @@ def content_to_df(content, annotation_type):
 
         num_rows = len(content_as_df.index)
 
-        # Add data for estimated start timestamps of each word, which are 10ms after the end timestamp of the previous label (to avoid overlap for now). Set the starting time of the first label to N/A.
+        # Add data for estimated start timestamps of each word, which are 1ms after the end timestamp of the previous label (to avoid overlap for now). Set the starting time of the first label to N/A.
         for i in content_as_df.index:
             if i <= num_rows and i > 0:
                 content_as_df.at[i, "start_est"] = (
-                    content_as_df.loc[i - 1, "end"] + 0.001
+                    content_as_df.loc[i - 1, "end"] + 0.0001
                 )
             else:
                 pass
