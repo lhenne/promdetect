@@ -4,7 +4,7 @@ Code to test functions in the `prep` submodule
 
 import unittest
 from pandas import DataFrame
-from pandas.core.construction import array
+import numpy as np
 from promdetect.prep import process_annotations, find_syllable_nuclei
 
 
@@ -140,17 +140,17 @@ class NucleiExtractionTests(unittest.TestCase):
 
         phones_df = DataFrame(
             [
-                (26.130000, "h", 25.871),
-                (26.160000, "E", 26.131),
-                (26.270000, "_6", 26.161),
-                (26.360000, "k", 26.271),
-                (26.420000, "l", 26.361),
-                (26.490000, "E:", 26.421),
-                (26.540000, "_6", 26.491),
-                (26.620000, "t", 26.541),
-                (26.740000, "@", 26.621),
+                (26.130000, "h", 25.8701),
+                (26.160000, "E", 26.1301),
+                (26.270000, "_6", 26.1601),
+                (26.360000, "k", 26.2701),
+                (26.420000, "l", 26.3601),
+                (26.490000, "E:", 26.4201),
+                (26.540000, "_6", 26.4901),
+                (26.620000, "t", 26.5401),
+                (26.740000, "@", 26.6201),
             ],
-            columns=["end", "label", "start_est"]
+            columns=["end", "label", "start_est"],
         )
         annotation_type = "phones"
 
@@ -170,10 +170,10 @@ class NucleiExtractionTests(unittest.TestCase):
 
         words_df = DataFrame(
             [
-                (25.870000, "bewirken", 25.351),
-                (26.130000, "[h]", 25.871),
-                (26.740000, "erklärte", 26.131),
-                (27.460000, "Außenminister", 26.741),
+                (25.870000, "bewirken", 25.3501),
+                (26.130000, "[h]", 25.8701),
+                (26.740000, "erklärte", 26.1301),
+                (27.460000, "Außenminister", 26.7401),
             ],
             columns=["end", "label", "start_est"],
         )
@@ -193,9 +193,80 @@ class NucleiExtractionTests(unittest.TestCase):
         """
         Are the nucleus points detected by the algorithm assigned to the correct word and phone labels?
         """
-        
-        nucleus_points = [26.15, 26.46, 26.621]
-        
-    def test_point_duration_assignment(self):
+
+        nucleus_points = [26.15, 26.29, 26.46, 26.6201]
+
+        phones_df = DataFrame(
+            [
+                (26.130000, "h", 25.8701),
+                (26.160000, "E", 26.1301),
+                (26.270000, "_6", 26.1601),
+                (26.360000, "k", 26.2701),
+                (26.420000, "l", 26.3601),
+                (26.490000, "E:", 26.4201),
+                (26.540000, "_6", 26.4901),
+                (26.620000, "t", 26.5401),
+                (26.740000, "@", 26.6201),
+            ],
+            columns=["end", "label", "start_est"],
+        )
+
+        words_df = DataFrame(
+            [
+                (25.870000, "bewirken", 25.3501),
+                (26.130000, "[h]", 25.8701),
+                (26.740000, "erklärte", 26.1301),
+                (27.460000, "Außenminister", 26.7401),
+            ],
+            columns=["end", "label", "start_est"],
+        )
+
+        assigned_df = find_syllable_nuclei.assign_points_labels(
+            nucleus_points, phones=phones_df, words=words_df
+        )
+
+        self.assertTrue(len(assigned_df) == 4)
+        self.assertTrue(list(assigned_df["phone"]) == ["E", np.nan, "E:", "@"])
+        self.assertTrue(
+            list(assigned_df["word"]) == ["erklärte", "erklärte", "erklärte", "erklärte"]
+        )
+
+    def test_timestamp_assignment(self):
         """
-        Are the nucleus points detected by the algorithm assigned with the correct duration?
+        Are the nucleus points detected by the algorithm assigned with the correct timestamps?
+        Duration is not tested because for some reason identity testing for it is impossible.
+        """
+
+        nucleus_points = [26.15, 26.29, 26.46, 26.6201]
+
+        phones_df = DataFrame(
+            [
+                (26.130000, "h", 25.8701),
+                (26.160000, "E", 26.1301),
+                (26.270000, "_6", 26.1601),
+                (26.360000, "k", 26.2701),
+                (26.420000, "l", 26.3601),
+                (26.490000, "E:", 26.4201),
+                (26.540000, "_6", 26.4901),
+                (26.620000, "t", 26.5401),
+                (26.740000, "@", 26.6201),
+            ],
+            columns=["end", "label", "start_est"],
+        )
+
+        words_df = DataFrame(
+            [
+                (25.870000, "bewirken", 25.3501),
+                (26.130000, "[h]", 25.8701),
+                (26.740000, "erklärte", 26.1301),
+                (27.460000, "Außenminister", 26.7401),
+            ],
+            columns=["end", "label", "start_est"],
+        )
+
+        assigned_df = find_syllable_nuclei.assign_points_labels(
+            nucleus_points, phones=phones_df, words=words_df
+        )
+
+        self.assertTrue(list(assigned_df["end"]) == [26.16, np.nan, 26.49, 26.74])
+        self.assertTrue(list(assigned_df["start_est"]) == [26.1301, np.nan, 26.4201, 26.6201])
