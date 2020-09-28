@@ -2,26 +2,24 @@
 This script detects syllable nuclei in a sound file
 and returns their timestamps.
 
-It is a loose translation of a Praat script by Nivja de Jong and Ton Wempe:
+It is loosely based on a Praat script by Nivja de Jong and Ton Wempe:
 https://sites.google.com/site/speechrate/Home/praat-script-syllable-nuclei-v2
+
+Their approach to voicing detection is switched out against making use of the additional information that phone- and word-level labels in the DIRNDL corpus offers.
 
 The analysis is run on filtered versions of the input files, filtering is done
 by means of an internal Praat function with custom parameters.
-This script adds the condition that a syllable nucleus not only has to be followed
-by a 2 dB dip in intensity, but that it also has to be preceded by one.
+
 
 Import necessary packages:
 `parselmouth` to send commands to the Praat phonetics software
 `pandas` to manage and output data in a nice format
-`re` for regular expressions
-`io` for a parseable StringIO object to forward to pandas functions
-`glob` to collect all recordings that are to be processed
 """
 from pandas import DataFrame
 import parselmouth as pm
 from parselmouth import praat
 
-SAMPA_VOWELS = [
+SAMPA_VOWELS = [  # Vowel symbols in SAMPA, to separate vowel timestamps from consonant timestamps
     "a:",
     "e:",
     "i:",
@@ -50,10 +48,17 @@ SAMPA_VOWELS = [
     "_9",
     "_2:",
 ]
-EXTRALING_SOUNDS = ["[@]", "[t]", "[n]", "[f]", "[h]", "<P>"]
+EXTRALING_SOUNDS = [
+    "[@]",
+    "[t]",
+    "[n]",
+    "[f]",
+    "[h]",
+    "<P>",
+]  # breathing sounds in the word-level DIRNDL annotation
 
-SILENCE_THRESHOLD = -25
-MIN_DIP_BETW_PEAKS = 2
+SILENCE_THRESHOLD = -25  # threshold to separate silence and voice in dB
+MIN_DIP_BETW_PEAKS = 2  # minimum dip between intensity peaks in dB
 
 
 def get_nucleus_points(sound_file):
@@ -72,12 +77,14 @@ def get_nucleus_points(sound_file):
     intensity_obj = snd_filtered.to_intensity(minimum_pitch=75)
 
     min_intensity = intensity_obj.get_minimum()
-    max_intensity_99 = praat.call(intensity_obj, "Get quantile", 0, 0, 0.99)
+    max_intensity_99 = praat.call(
+        intensity_obj, "Get quantile", 0, 0, 0.99
+    )  # to remove extreme outliers (top 1%)
 
     threshold = max_intensity_99 + SILENCE_THRESHOLD
 
     if threshold < min_intensity:
-        threshold = min_intensity
+        threshold = min_intensity  # in case the threshold was set lower than the silence level in the recording
 
     peak_cands = find_peak_cands(intensity_obj, threshold)
 
@@ -97,7 +104,7 @@ def assign_points_labels(nuclei, phones, words):
     phones_filtered = filter_labels(phones, "phones")
     words_filtered = filter_labels(words, "words")
 
-    assigned_df = DataFrame(
+    assigned_df = DataFrame(  # prepare empty DF to insert all the combined data into
         columns=["nucl_time", "phone", "word", "start_est", "end", "duration_est"]
     )
 
@@ -151,6 +158,7 @@ def find_peak_cands(intensity_obj, threshold):
     Determine candidates for syllable nuclei by finding peaks in the PointProcess object
     """
 
+    # Below lines are a direct functional translation from the Praat script by Wempe & de Jong
     intensity_mx = praat.call(intensity_obj, "Down to Matrix")
     snd_intensity_mx = praat.call(intensity_mx, "To Sound (slice)", 1)
 
@@ -177,6 +185,11 @@ def find_peak_cands(intensity_obj, threshold):
 
 
 def validate(intensity_obj, peak_cands):
+    """ This function validates the n potential peaks (i.e. potential syllable nuclei) that were found by checking whether they are:
+        - followed by a min. 2dB dip (first peak)
+        - surrounded by min. 2dB dip (second to penultimate peak)
+        - preceded by a min. 2dB dip (last peak)
+    """
 
     valid_peaks = []
 
