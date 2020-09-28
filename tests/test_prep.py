@@ -8,7 +8,7 @@ from pandas import DataFrame
 import numpy as np
 import parselmouth as pm
 from parselmouth import praat
-from promdetect.prep import process_annotations, find_syllable_nuclei
+from promdetect.prep import process_annotations, find_syllable_nuclei, extract_features
 
 
 class AnnotationImportTests(unittest.TestCase):
@@ -305,6 +305,10 @@ class NucleiExtractionTests(unittest.TestCase):
         self.assertTrue(len(matches) >= len(nuc_timestamps) / 2)
 
     def test_find_peak_candidates(self):
+        """
+        Does find_peak_cands find all the peaks it can be expected to find?
+        """
+
         snd_obj = pm.Sound("tests/test_material/test.wav")
         snd_denoised = praat.call(
             snd_obj, "Remove noise", 0, 0, 0.025, 75, 10_000, 40, "Spectral subtraction"
@@ -317,3 +321,74 @@ class NucleiExtractionTests(unittest.TestCase):
 
         self.assertTrue(len(peak_candidates) == 16)
         self.assertAlmostEqual(peak_candidates[5][1], 70.635, places=3)
+
+
+class FeatureExtractionTests(unittest.TestCase):
+    """
+    Do the various feature extraction functions return the results they are expected to return?
+    """
+
+    def test_rms_extraction(self):
+        """
+        Does the RMS calculation using Praat work properly?
+        """
+
+        snd_obj = pm.Sound("tests/test_material/feature_extraction/test.wav")
+
+        nuclei_df = DataFrame(
+            [
+                (11.41, 11.52, "I"),
+                (11.63, 11.72, "e:"),
+                (11.79, 11.85, "I"),
+                (11.96, 12.03, "U"),
+                (12.16, 12.24, "o:"),
+            ],
+            columns=["start_est", "end", "phone"],
+        )
+
+        rms = extract_features.get_rms(snd_obj, nuclei_df)
+
+        expected_vals = np.array(
+            [
+                0.17689167172400735,
+                0.2278562589839203,
+                0.16188228973962826,
+                0.1256124165026432,
+                0.1446231088144042,
+            ]
+        )
+
+        self.assertTrue(rms == expected_vals)
+
+    def test_energy_extraction(self):
+        """
+        Does the energy extraction (dB) using Praat work properly?
+        """
+
+        snd_obj = pm.Sound("tests/test_material/feature_extraction/test.wav")
+        int_obj = snd_obj.to_intensity(minimum_pitch=75)
+
+        nuclei_df = DataFrame(
+            [
+                (11.41, 11.52, "I"),
+                (11.63, 11.72, "e:"),
+                (11.79, 11.85, "I"),
+                (11.96, 12.03, "U"),
+                (12.16, 12.24, "o:"),
+            ],
+            columns=["start_est", "end", "phone"],
+        )
+
+        energy = extract_features.get_energy(int_obj, nuclei_df)
+
+        expected_vals = np.array(
+            [
+                81.1521732084371,
+                81.72280626772428,
+                79.37680512029912,
+                77.91419036596378,
+                78.403839787533,
+            ]
+        )
+
+        self.assertTrue(energy == expected_vals)
