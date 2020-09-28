@@ -18,6 +18,8 @@ Import necessary packages:
 `glob` to collect all recordings that are to be processed
 """
 from pandas import DataFrame
+import parselmouth as pm
+from parselmouth import praat
 
 SAMPA_VOWELS = [
     "a:",
@@ -49,6 +51,42 @@ SAMPA_VOWELS = [
     "_2:",
 ]
 EXTRALING_SOUNDS = ["[@]", "[t]", "[n]", "[f]", "[h]", "<P>"]
+
+SILENCE_THRESHOLD = -25
+MIN_DIP_BETW_PEAKS = 2
+
+
+def get_nucleus_points(sound_file):
+    """
+    This function determines syllable nuclei in an input sound file.
+    """
+
+    snd_raw = pm.Sound(sound_file)
+
+    # Clean parselmouth sound obj object by removing noise using a Praat function.
+    # ["Remove noise"] from start [0] to end [0] of the Sound, work with overlapping windows with length [0.025] seconds, filter everything between frequencies [50] Hz to [10_000] Hz with [40] Hz smoothing factor using the ["Spectral subtraction"] noise reduction method.
+    snd_filtered = praat.call(
+        snd_raw, "Remove noise", 0, 0, 0.025, 75, 10_000, 40, "Spectral subtraction"
+    )
+
+    intensity_obj = snd_filtered.to_intensity(minimum_pitch=75)
+
+    min_intensity = intensity_obj.get_minimum()
+    max_intensity_99 = praat.call(intensity_obj, "Get quantile", 0, 0, 0.99)
+
+    threshold = max_intensity_99 + SILENCE_THRESHOLD
+
+    if threshold < min_intensity:
+        threshold = min_intensity
+
+    peak_cands = find_peak_cands(intensity_obj, threshold)
+
+    valid_peaks = validate(intensity_obj, peak_cands)
+
+    return [x[0] for x in valid_peaks]
+
+
+# ANCILLARY FUNCTIONS
 
 
 def assign_points_labels(nuclei, phones, words):
@@ -106,3 +144,79 @@ def filter_labels(annotation_df, annotation_type):
     filtered_df = annotation_df.loc[(annotation_df["label"].isin(label_inv)) == keep_if]
 
     return filtered_df
+
+
+def find_peak_cands(intensity_obj, threshold):
+    """
+    Determine candidates for syllable nuclei by finding peaks in the PointProcess object
+    """
+
+    intensity_mx = praat.call(intensity_obj, "Down to Matrix")
+    snd_intensity_mx = praat.call(intensity_mx, "To Sound (slice)", 1)
+
+    pt_proc_obj = praat.call(
+        snd_intensity_mx, "To PointProcess (extrema)", "Left", "yes", "no", "Sinc70"
+    )
+
+    num_peaks = praat.call(pt_proc_obj, "Get number of points")
+    times_peaks = [
+        praat.call(pt_proc_obj, "Get time from index", i + 1) for i in range(num_peaks)
+    ]
+    vals_peaks = [
+        praat.call(snd_intensity_mx, "Get value at time", time, "Cubic")
+        for time in times_peaks
+    ]
+
+    peaks = [
+        (times_peaks[i], vals_peaks[i])
+        for i in range(num_peaks)
+        if vals_peaks[i] > threshold
+    ]
+
+    return peaks
+
+
+def validate(intensity_obj, peak_cands):
+
+    valid_peaks = []
+
+    for i in range(len(peak_cands) - 1):
+        peak = peak_cands[i]
+
+        if i == 0:
+            next_peak = peak_cands[i + 1]
+            next_intensity_dip = praat.call(
+                intensity_obj, "Get minimum", peak[0], next_peak[0], "None"
+            )
+            intensity_diff = abs(peak[1] - next_intensity_dip)
+
+            if intensity_diff > MIN_DIP_BETW_PEAKS:
+                valid_peaks.append(peak)
+
+        elif 0 < i < len(peak_cands) - 1:
+            next_peak = peak_cands[i + 1]
+            next_intensity_dip = praat.call(
+                intensity_obj, "Get minimum", peak[0], next_peak[0], "None"
+            )
+            intensity_diff = abs(peak[1] - next_intensity_dip)
+
+            if intensity_diff > MIN_DIP_BETW_PEAKS:
+                prev_peak = peak_cands[i - 1]
+                prev_intensity_dip = praat.call(
+                    intensity_obj, "Get minimum", prev_peak[0], peak[0], "None"
+                )
+                intensity_diff = abs(peak[1] - prev_intensity_dip)
+
+                if intensity_diff > MIN_DIP_BETW_PEAKS:
+                    valid_peaks.append(peak)
+        else:
+            prev_peak = peak_cands[i - 1]
+            prev_intensity_dip = praat.call(
+                intensity_obj, "Get minimum", prev_peak[0], peak[0], "None"
+            )
+            intensity_diff = abs(peak[1] - prev_intensity_dip)
+
+            if intensity_diff > MIN_DIP_BETW_PEAKS:
+                valid_peaks.append(peak)
+
+    return valid_peaks
