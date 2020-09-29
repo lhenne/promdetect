@@ -446,3 +446,27 @@ class FeatureExtractionTests(unittest.TestCase):
         )
 
         self.assertTrue(np.array_equal(excursions, expected_vals, equal_nan=True))
+
+    def test_normalized_duration_ip(self):
+        """
+        Are normalized durations relative to remainder of the intonation phrase extracted correctly?
+        """
+
+        nuclei_df = DataFrame(
+            [
+                (11.41, 11.52, "I", 11.41, 13.91),
+                (11.63, 11.72, "e:", 11.41, 13.91),
+                (11.79, 11.85, "I", 11.41, 13.91),
+                (11.96, 12.03, "U", 11.41, 13.91),
+                (12.16, 12.24, "o:", 11.41, 13.91),
+            ],
+            columns=["start_est", "end", "phone", "ip_start", "ip_end"],
+        )
+
+        durations = extract_features.get_duration_normed(nuclei_df)
+
+        expected_vals = np.array(
+            [1.3414634, 1.097561, 0.73170732, 0.85365854, 0.97560976]
+        )
+
+        self.assertTrue(np.array_equal(durations, expected_vals, equal_nan=True))
