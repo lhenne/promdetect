@@ -358,7 +358,7 @@ class FeatureExtractionTests(unittest.TestCase):
             ]
         )
 
-        self.assertTrue(rms == expected_vals)
+        self.assertTrue(np.array_equal(rms, expected_vals, equal_nan=True))
 
     def test_intensity_extraction(self):
         """
@@ -391,4 +391,4 @@ class FeatureExtractionTests(unittest.TestCase):
             ]
         )
 
-        self.assertTrue(intensities == expected_vals)
+        self.assertTrue(np.array_equal(intensities, expected_vals, equal_nan=True))
