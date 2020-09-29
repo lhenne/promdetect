@@ -392,3 +392,57 @@ class FeatureExtractionTests(unittest.TestCase):
         )
 
         self.assertTrue(np.array_equal(intensities, expected_vals, equal_nan=True))
+
+    def test_pitch_excursion_ip(self):
+        """
+        Does the extraction of pitch excursion across the intonation phrase work correctly?
+        """
+
+        snd_obj = pm.Sound("tests/test_material/feature_extraction/test.wav")
+        pitch_obj = snd_obj.to_pitch(pitch_floor=75, pitch_ceiling=300)
+
+        nuclei_df = DataFrame(
+            [
+                (11.41, 11.52, "I", 11.41, 13.91),
+                (11.63, 11.72, "e:", 11.41, 13.91),
+                (11.79, 11.85, "I", 11.41, 13.91),
+                (11.96, 12.03, "U", 11.41, 13.91),
+                (12.16, 12.24, "o:", 11.41, 13.91),
+            ],
+            columns=["start_est", "end", "phone", "ip_start", "ip_end"],
+        )
+
+        excursions = extract_features.get_excursion(pitch_obj, nuclei_df, "ip")
+
+        expected_vals = np.array(
+            [4.1047679, 4.8423838, 6.4484428, 6.6508801, 8.4947845]
+        )
+
+        self.assertTrue(np.array_equal(excursions, expected_vals, equal_nan=True))
+
+    def test_pitch_excursion_word(self):
+        """
+        Does the extraction of pitch excursion across the word work correctly?
+        """
+
+        snd_obj = pm.Sound("tests/test_material/feature_extraction/test.wav")
+        pitch_obj = snd_obj.to_pitch(pitch_floor=75, pitch_ceiling=300)
+
+        nuclei_df = DataFrame(
+            [
+                (11.41, 11.52, "I", 11.41, 11.6),
+                (11.63, 11.72, "e:", 11.6, 11.75),
+                (11.79, 11.85, "I", 11.75, 12.3),
+                (11.96, 12.03, "U", 11.75, 12.3),
+                (12.16, 12.24, "o:", 11.75, 12.3),
+            ],
+            columns=["start_est", "end", "phone", "word_start", "word_end"],
+        )
+
+        excursions = extract_features.get_excursion(pitch_obj, nuclei_df, "word")
+
+        expected_vals = np.array(
+            [0.99153444, 1.8870335, 3.3529092, 3.5553466, 5.399251]
+        )
+
+        self.assertTrue(np.array_equal(excursions, expected_vals, equal_nan=True))
