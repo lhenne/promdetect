@@ -360,9 +360,9 @@ class FeatureExtractionTests(unittest.TestCase):
 
         self.assertTrue(rms == expected_vals)
 
-    def test_energy_extraction(self):
+    def test_intensity_extraction(self):
         """
-        Does the energy extraction (dB) using Praat work properly?
+        Does the intensity extraction (dB) using Praat work properly?
         """
 
         snd_obj = pm.Sound("tests/test_material/feature_extraction/test.wav")
@@ -379,7 +379,7 @@ class FeatureExtractionTests(unittest.TestCase):
             columns=["start_est", "end", "phone"],
         )
 
-        energy = extract_features.get_energy(int_obj, nuclei_df)
+        intensities = extract_features.get_intensity(int_obj, nuclei_df)
 
         expected_vals = np.array(
             [
@@ -391,4 +391,4 @@ class FeatureExtractionTests(unittest.TestCase):
             ]
         )
 
-        self.assertTrue(energy == expected_vals)
+        self.assertTrue(intensities == expected_vals)
