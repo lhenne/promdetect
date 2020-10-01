@@ -7,6 +7,7 @@ Import necessary packages:
 """
 
 import numpy as np
+import pandas as pd
 
 
 def get_rms(snd_obj, nuclei):
@@ -26,8 +27,31 @@ def get_rms(snd_obj, nuclei):
     return rms_vals
 
 
+def get_duration_normed(nuclei):
+    """
+    This function extracts the duration of syllable nuclei, normalized to the rest of their intonation phrase
+    """
+
+    check_input_df(nuclei, ["start_est", "end", "ip_start", "ip_end"])
+
+    nuclei["duration"] = nuclei["end"] - nuclei["start_est"]
+
+    ip_mean = nuclei.groupby(["ip_start", "ip_end"], as_index=False).mean()
+    ip_mean = ip_mean[["ip_start", "ip_end", "duration"]]
+    ip_mean = ip_mean.rename(columns={"duration": "mean_ip_dur"})
+
+    durs_df = pd.merge(nuclei, ip_mean, how="left", on=["ip_start", "ip_end"])
+
+    normed_durs = (durs_df["duration"] / durs_df["mean_ip_dur"]).to_numpy()
+
+    return normed_durs
+
+
 # ANCILLARY FUNCTIONS
 def check_input_df(input_df, expected_cols):
+    """
+    Check if the input DataFrame contains all the necessary columns for the extraction.
+    """
 
     if all(col in input_df.columns for col in expected_cols):
         pass
