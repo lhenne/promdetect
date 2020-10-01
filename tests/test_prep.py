@@ -346,9 +346,9 @@ class FeatureExtractionTests(unittest.TestCase):
             columns=["start_est", "end", "phone"],
         )
 
-        rms = extract_features.get_rms(snd_obj, nuclei_df)
+        rms = np.around(extract_features.get_rms(snd_obj, nuclei_df), decimals=4)
 
-        expected_vals = np.array(
+        expected_vals = np.around(np.array(
             [
                 0.17689167172400735,
                 0.2278562589839203,
@@ -356,7 +356,7 @@ class FeatureExtractionTests(unittest.TestCase):
                 0.1256124165026432,
                 0.1446231088144042,
             ]
-        )
+        ), decimals=4)
 
         self.assertTrue(np.array_equal(rms, expected_vals, equal_nan=True))
 
@@ -379,9 +379,9 @@ class FeatureExtractionTests(unittest.TestCase):
             columns=["start_est", "end", "phone"],
         )
 
-        intensities = extract_features.get_intensity(int_obj, nuclei_df)
+        intensities = np.around(extract_features.get_intensity(int_obj, nuclei_df), decimals=4)
 
-        expected_vals = np.array(
+        expected_vals = np.around(np.array(
             [
                 81.1521732084371,
                 81.72280626772428,
@@ -389,7 +389,7 @@ class FeatureExtractionTests(unittest.TestCase):
                 77.91419036596378,
                 78.403839787533,
             ]
-        )
+        ), decimals=4)
 
         self.assertTrue(np.array_equal(intensities, expected_vals, equal_nan=True))
 
@@ -412,11 +412,11 @@ class FeatureExtractionTests(unittest.TestCase):
             columns=["start_est", "end", "phone", "ip_start", "ip_end"],
         )
 
-        excursions = extract_features.get_excursion(pitch_obj, nuclei_df, "ip")
+        excursions = np.around(extract_features.get_excursion(pitch_obj, nuclei_df, "ip"), decimals=4)
 
-        expected_vals = np.array(
+        expected_vals = np.around(np.array(
             [4.1047679, 4.8423838, 6.4484428, 6.6508801, 8.4947845]
-        )
+        ), decimals=4)
 
         self.assertTrue(np.array_equal(excursions, expected_vals, equal_nan=True))
 
@@ -439,10 +439,13 @@ class FeatureExtractionTests(unittest.TestCase):
             columns=["start_est", "end", "phone", "word_start", "word_end"],
         )
 
-        excursions = extract_features.get_excursion(pitch_obj, nuclei_df, "word")
+        excursions = np.around(
+            extract_features.get_excursion(pitch_obj, nuclei_df, "word"), decimals=4
+        )
 
-        expected_vals = np.array(
-            [0.99153444, 1.8870335, 3.3529092, 3.5553466, 5.399251]
+        expected_vals = np.around(
+            np.array([0.99153444, 1.8870335, 3.3529092, 3.5553466, 5.399251]),
+            decimals=4,
         )
 
         self.assertTrue(np.array_equal(excursions, expected_vals, equal_nan=True))
@@ -463,10 +466,13 @@ class FeatureExtractionTests(unittest.TestCase):
             columns=["start_est", "end", "phone", "ip_start", "ip_end"],
         )
 
-        durations = extract_features.get_duration_normed(nuclei_df)
+        durations = np.around(
+            extract_features.get_duration_normed(nuclei_df), decimals=4
+        )
 
-        expected_vals = np.array(
-            [1.3414634, 1.097561, 0.73170732, 0.85365854, 0.97560976]
+        expected_vals = np.around(
+            np.array([1.3414634, 1.097561, 0.73170732, 0.85365854, 0.97560976]),
+            decimals=4,
         )
 
         self.assertTrue(np.array_equal(durations, expected_vals, equal_nan=True))
