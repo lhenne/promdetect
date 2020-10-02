@@ -348,19 +348,22 @@ class FeatureExtractionTests(unittest.TestCase):
 
         rms = np.around(extract_features.get_rms(snd_obj, nuclei_df), decimals=4)
 
-        expected_vals = np.around(np.array(
-            [
-                0.17689167172400735,
-                0.2278562589839203,
-                0.16188228973962826,
-                0.1256124165026432,
-                0.1446231088144042,
-            ]
-        ), decimals=4)
+        expected_vals = np.around(
+            np.array(
+                [
+                    0.17689167172400735,
+                    0.2278562589839203,
+                    0.16188228973962826,
+                    0.1256124165026432,
+                    0.1446231088144042,
+                ]
+            ),
+            decimals=4,
+        )
 
         self.assertTrue(np.array_equal(rms, expected_vals, equal_nan=True))
 
-    def test_intensity_extraction(self):
+    def test_intensity_extraction_nuclei_max(self):
         """
         Does the intensity extraction (dB) using Praat work properly?
         """
@@ -379,17 +382,47 @@ class FeatureExtractionTests(unittest.TestCase):
             columns=["start_est", "end", "phone"],
         )
 
-        intensities = np.around(extract_features.get_intensity(int_obj, nuclei_df), decimals=4)
+        intensities = np.around(
+            extract_features.get_intensity_nuclei(int_obj, nuclei_df), decimals=4
+        )
 
-        expected_vals = np.around(np.array(
-            [
-                81.1521732084371,
-                81.72280626772428,
-                79.37680512029912,
-                77.91419036596378,
-                78.403839787533,
-            ]
-        ), decimals=4)
+        expected_vals = np.around(
+            np.array(
+                [
+                    81.1521732084371,
+                    81.72280626772428,
+                    79.37680512029912,
+                    77.91419036596378,
+                    78.403839787533,
+                ]
+            ),
+            decimals=4,
+        )
+
+        self.assertTrue(np.array_equal(intensities, expected_vals, equal_nan=True))
+
+    def test_intensity_extraction_ip_mean(self):
+        """
+        Does the intensity extraction (dB) for intonation phrases work properly?
+        """
+
+        snd_obj = pm.Sound("tests/test_material/feature_extraction/test.wav")
+        int_obj = snd_obj.to_intensity(minimum_pitch=75)
+
+        ip_df = DataFrame(
+            [(11.41, 13.91), (13.911, 16.2), (16.201, 18.91)],
+            columns=["ip_start", "ip_end"],
+        )
+
+        intensities = np.around(
+            extract_features.get_intensity_ip(int_obj, ip_df), decimals=4
+        )
+
+        expected_vals = np.around(np.array([
+            75.39665468978198,
+            71.55360893937386,
+            70.32496318148395
+        ]), decimals=4)
 
         self.assertTrue(np.array_equal(intensities, expected_vals, equal_nan=True))
 
@@ -412,11 +445,14 @@ class FeatureExtractionTests(unittest.TestCase):
             columns=["start_est", "end", "phone", "ip_start", "ip_end"],
         )
 
-        excursions = np.around(extract_features.get_excursion(pitch_obj, nuclei_df, "ip"), decimals=4)
+        excursions = np.around(
+            extract_features.get_excursion(pitch_obj, nuclei_df, "ip"), decimals=4
+        )
 
-        expected_vals = np.around(np.array(
-            [4.1047679, 4.8423838, 6.4484428, 6.6508801, 8.4947845]
-        ), decimals=4)
+        expected_vals = np.around(
+            np.array([4.1047679, 4.8423838, 6.4484428, 6.6508801, 8.4947845]),
+            decimals=4,
+        )
 
         self.assertTrue(np.array_equal(excursions, expected_vals, equal_nan=True))
 

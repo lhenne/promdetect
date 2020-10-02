@@ -48,7 +48,7 @@ def get_duration_normed(nuclei):
     return normed_durs
 
 
-def get_intensity(int_obj, nuclei):
+def get_intensity_nuclei(int_obj, nuclei):
     """
     This function extracts the maximum intensity value in each syllable nucleus
     """
@@ -63,6 +63,23 @@ def get_intensity(int_obj, nuclei):
     )
 
     return intens_max
+
+
+def get_intensity_ip(int_obj, ip):
+    """
+    This function extracts the mean intensity value for each intonation phrase
+    """
+
+    check_input_df(ip, ["ip_start", "ip_end"])
+
+    intens_avg = np.array(
+        [
+            praat.call(int_obj, "Get mean", row.ip_start, row.ip_end, "energy")
+            for row in ip.itertuples()
+        ]
+    )
+
+    return intens_avg
 
 
 # ANCILLARY FUNCTIONS
