@@ -8,6 +8,7 @@ Import necessary packages:
 
 import numpy as np
 import pandas as pd
+from parselmouth import praat
 
 
 def get_rms(snd_obj, nuclei):
@@ -45,6 +46,23 @@ def get_duration_normed(nuclei):
     normed_durs = (durs_df["duration"] / durs_df["mean_ip_dur"]).to_numpy()
 
     return normed_durs
+
+
+def get_intensity(int_obj, nuclei):
+    """
+    This function extracts the maximum intensity value in each syllable nucleus
+    """
+
+    check_input_df(nuclei, ["start_est", "end"])
+
+    intens_max = np.array(
+        [
+            praat.call(int_obj, "Get maximum", row.start_est, row.end, "None")
+            for row in nuclei.itertuples()
+        ]
+    )
+
+    return intens_max
 
 
 # ANCILLARY FUNCTIONS
