@@ -82,6 +82,23 @@ def get_intensity_ip(int_obj, ip):
     return intens_avg
 
 
+def get_f0_nuclei(pitch_obj, nuclei):
+    """
+    This function extracts the F0 peak value in each syllable nucleus
+    """
+
+    check_input_df(nuclei, ["start_est", "end"])
+
+    f0_max = np.array(
+        [
+            praat.call(pitch_obj, "Get maximum", row.start_est, row.end, "Hertz", "None")
+            for row in nuclei.itertuples()
+        ]
+    )
+
+    return f0_max
+
+
 # ANCILLARY FUNCTIONS
 def check_input_df(input_df, expected_cols):
     """

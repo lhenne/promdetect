@@ -418,13 +418,50 @@ class FeatureExtractionTests(unittest.TestCase):
             extract_features.get_intensity_ip(int_obj, ip_df), decimals=4
         )
 
-        expected_vals = np.around(np.array([
-            75.39665468978198,
-            71.55360893937386,
-            70.32496318148395
-        ]), decimals=4)
+        expected_vals = np.around(
+            np.array([75.39665468978198, 71.55360893937386, 70.32496318148395]),
+            decimals=4,
+        )
 
         self.assertTrue(np.array_equal(intensities, expected_vals, equal_nan=True))
+
+    def test_f0_extraction_nuclei_max(self):
+        """
+        Does the F0 peak extraction for syllable nuclei work properly?
+        """
+
+        snd_obj = pm.Sound("tests/test_material/feature_extraction/test.wav")
+        pitch_obj = snd_obj.to_pitch(pitch_floor=75, pitch_ceiling=300)
+
+        nuclei_df = DataFrame(
+            [
+                (11.41, 11.52, "I"),
+                (11.63, 11.72, "e:"),
+                (11.79, 11.85, "I"),
+                (11.96, 12.03, "U"),
+                (12.16, 12.24, "o:"),
+            ],
+            columns=["start_est", "end", "phone"],
+        )
+
+        f0s = np.around(
+            extract_features.get_f0_nuclei(pitch_obj, nuclei_df), decimals=4
+        )
+
+        expected_vals = np.around(
+            np.array(
+                [
+                    117.78518230616625,
+                    122.91202304558337,
+                    134.8601674833045,
+                    136.44637556861306,
+                    151.78116500023737,
+                ]
+            ),
+            decimals=4,
+        )
+
+        self.assertTrue(np.array_equal(f0s, expected_vals, equal_nan=True))
 
     def test_pitch_excursion_ip(self):
         """
