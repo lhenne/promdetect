@@ -41,10 +41,6 @@ SAMPA_VOWELS = [  # Vowel symbols in SAMPA, to separate vowel timestamps from co
     "aI",
     "aU",
     "_6",
-    # "m",  # TODO: Decide on these glides and nasals
-    # "n",
-    # "l",
-    # "N",
     "_9",
     "_2:",
 ]
@@ -187,7 +183,8 @@ def find_peak_cands(intensity_obj, threshold):
 def validate(intensity_obj, peak_cands):
     """ This function validates the n potential peaks (i.e. potential syllable nuclei) that were found by checking whether they are:
         - followed by a min. 2dB dip (first peak)
-        - surrounded by min. 2dB dip (second to penultimate peak)
+        - surrounded by min. 2dB dip (second to penultimate peak) -- DISABLED
+        - min. dB dip on any side (second to penultimate peak)
         - preceded by a min. 2dB dip (last peak)
     """
 
@@ -214,6 +211,16 @@ def validate(intensity_obj, peak_cands):
             intensity_diff = abs(peak[1] - next_intensity_dip)
 
             if intensity_diff > MIN_DIP_BETW_PEAKS:
+                # DISABLED: Possibility to require a dip before the nucleus as well.
+                """prev_peak = peak_cands[i - 1]
+                prev_intensity_dip = praat.call(
+                    intensity_obj, "Get minimum", prev_peak[0], peak[0], "None"
+                )
+                intensity_diff = abs(peak[1] - prev_intensity_dip)
+
+                if intensity_diff > MIN_DIP_BETW_PEAKS:"""
+                valid_peaks.append(peak)
+            else:
                 prev_peak = peak_cands[i - 1]
                 prev_intensity_dip = praat.call(
                     intensity_obj, "Get minimum", prev_peak[0], peak[0], "None"
