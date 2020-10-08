@@ -14,70 +14,74 @@ from pathlib import Path
 from numpy import nan
 
 
-def get_annotation_data(annotation_file) -> pd.DataFrame:
-    """
-    This function reads files containing annotations and processes the data, storing it in a pandas.DataFrame object.
-    The type of annotation (e.g. word-level or accent-level) is deduced from the file extension.
-    Unnecessary information from the files is not returned, only timestamps and labels are.
-    """
+class AnnotationReader(str):
 
-    annotation_file = Path(annotation_file).resolve()
+    def __init__(self, annotation_file):
+        self.annotation_file = annotation_file
 
-    if annotation_file.is_file():
-        pass
-    else:
-        raise FileNotFoundError("Input file could not be found.")
+    def get_annotation_data(self) -> pd.DataFrame:
+        """
+        This function reads files containing annotations and processes the data, storing it in a pandas.DataFrame object.
+        The type of annotation (e.g. word-level or accent-level) is deduced from the file extension.
+        Unnecessary information from the files is not returned, only timestamps and labels are.
+        """
 
-    annotation_type = annotation_file.suffix[
-        1:
-    ]  # Get annotation type from file extension, but without the dot
+        self.annotation_file = Path(self.annotation_file).resolve()
 
-    if annotation_type in ["accents", "phones", "tones", "words"]:
-        pass
-    else:
-        raise ValueError("Input file does not contain supported annotation type")
+        if self.annotation_file.is_file():
+            pass
+        else:
+            raise FileNotFoundError("Input file could not be found.")
 
-    raw_content = read_file(annotation_file)
+        annotation_type = self.annotation_file.suffix[
+            1:
+        ]  # Get annotation type from file extension, but without the dot
 
-    content = StringIO(
-        clean_text(raw_content, annotation_type)
-    )  # Store string in a StringIO object to enable pandas to parse it like a CSV file.
+        if annotation_type in ["accents", "phones", "tones", "words"]:
+            pass
+        else:
+            raise ValueError("Input file does not contain supported annotation type")
 
-    data = content_to_df(content, annotation_type)
+        raw_content = read_file(self.annotation_file)
 
-    return data
+        content = StringIO(
+            clean_text(raw_content, annotation_type)
+        )  # Store string in a StringIO object to enable pandas to parse it like a CSV file.
 
+        data = content_to_df(content, annotation_type)
 
-def get_speaker_info(recording_id):
-    """
-    This functions reads the file "speakers-prosodically-annotated-part.txt" and finds the supplied recording ID in that file, returning a tuple with the corresponding speaker's ID and gender.
-    The ID will later be used to investigate cross-speaker similarities and differences, the gender is relevant to the calculation of acoustical features.
-    """
+        return data
 
-    with open(
-        Path(
-            "../quelldaten/DIRNDL-prosody/speakers-prosodically-annotated-part.txt"
-        ).resolve(),
-        "r",
-    ) as speakerFile:
-        found_id = False
+    def get_speaker_info(self):
+        """
+        This functions reads the file "speakers-prosodically-annotated-part.txt" and finds the supplied recording ID in that file, returning a tuple with the corresponding speaker's ID and gender.
+        The ID will later be used to investigate cross-speaker similarities and differences, the gender is relevant to the calculation of acoustical features.
+        """
 
-        for line in speakerFile:
-            if recording_id in line:
-                found_id = True
-                # Extract ID number of the speaker
-                speaker_id = re.findall(r"[0-9 \t]+SP([0-9]?)[fm]", line)[0]
-                speaker_gender = re.sub(r"[^a-z]*", "", line)
+        with open(
+            Path(
+                "../quelldaten/DIRNDL-prosody/speakers-prosodically-annotated-part.txt"
+            ).resolve(),
+            "r",
+        ) as speakerFile:
+            found_id = False
 
-                if speaker_id != "" and speaker_gender in ["m", "f"]:
-                    return (speaker_id, speaker_gender)
-                else:
-                    raise ValueError(
-                        "Speaker ID and/or gender could not be determined."
-                    )
+            for line in speakerFile:
+                if self.annotation_file in line:
+                    found_id = True
+                    # Extract ID number of the speaker
+                    speaker_id = re.findall(r"[0-9 \t]+SP([0-9]?)[fm]", line)[0]
+                    speaker_gender = re.sub(r"[^a-z]*", "", line)
 
-        if not found_id:
-            raise ValueError("Supplied recording ID could not be found.")
+                    if speaker_id != "" and speaker_gender in ["m", "f"]:
+                        return (speaker_id, speaker_gender)
+                    else:
+                        raise ValueError(
+                            "Speaker ID and/or gender could not be determined."
+                        )
+
+            if not found_id:
+                raise ValueError("Supplied recording ID could not be found.")
 
 
 # ANCILLARY FUNCTIONS

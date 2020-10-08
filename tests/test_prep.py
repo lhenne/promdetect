@@ -49,7 +49,8 @@ class AnnotationImportTests(unittest.TestCase):
         annotation_file = "tests/test_material/test.phrases"
 
         with self.assertRaises(ValueError):
-            process_annotations.get_annotation_data(annotation_file)
+            tester = process_annotations.AnnotationReader(annotation_file)
+            tester.get_annotation_data()
 
     def test_annotation_missing_file(self):
         """
@@ -59,7 +60,8 @@ class AnnotationImportTests(unittest.TestCase):
         annotation_file = "does/not/exist.accents"
 
         with self.assertRaises(FileNotFoundError):
-            process_annotations.get_annotation_data(annotation_file)
+            tester = process_annotations.AnnotationReader(annotation_file)
+            tester.get_annotation_data()
 
     def test_annotation_accents_output(self):
         """
@@ -68,7 +70,8 @@ class AnnotationImportTests(unittest.TestCase):
 
         annotation_file = "tests/test_material/test.accents"
 
-        output_df = process_annotations.get_annotation_data(annotation_file)
+        tester = process_annotations.AnnotationReader(annotation_file)
+        output_df = tester.get_annotation_data()
 
         self.assertTrue("time" in output_df.columns)
         self.assertFalse("end" in output_df.columns)
@@ -83,7 +86,8 @@ class AnnotationImportTests(unittest.TestCase):
 
         annotation_file = "tests/test_material/test.words"
 
-        output_df = process_annotations.get_annotation_data(annotation_file)
+        tester = process_annotations.AnnotationReader(annotation_file)
+        output_df = tester.get_annotation_data()
 
         self.assertTrue("end" in output_df.columns)
         self.assertTrue("start_est" in output_df.columns)
@@ -99,7 +103,8 @@ class AnnotationImportTests(unittest.TestCase):
 
         annotation_file = "tests/test_material/test.phones"
 
-        output_df = process_annotations.get_annotation_data(annotation_file)
+        tester = process_annotations.AnnotationReader(annotation_file)
+        output_df = tester.get_annotation_data()
 
         self.assertTrue("end" in output_df.columns)
         self.assertTrue("start_est" in output_df.columns)
@@ -116,7 +121,8 @@ class AnnotationImportTests(unittest.TestCase):
         recording_id = "notarealid2005-08-20-1500"
 
         with self.assertRaises(ValueError):
-            process_annotations.get_speaker_info(recording_id)
+            tester = process_annotations.AnnotationReader(recording_id)
+            tester.get_speaker_info()
 
     def test_speaker_info(self):
         """
@@ -126,9 +132,9 @@ class AnnotationImportTests(unittest.TestCase):
         recording_id = "200703260600"
         correct_output = ("2", "f")
 
-        self.assertTrue(
-            process_annotations.get_speaker_info(recording_id) == correct_output
-        )
+        tester = process_annotations.AnnotationReader(recording_id)
+
+        self.assertTrue(tester.get_speaker_info() == correct_output)
 
 
 class NucleiExtractionTests(unittest.TestCase):
