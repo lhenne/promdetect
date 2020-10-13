@@ -2,11 +2,10 @@
 Code to test functions in the `prep` submodule
 """
 
-from promdetect.prep.find_syllable_nuclei import find_peak_cands
 import unittest
 from pandas import DataFrame
 import numpy as np
-import parselmouth as pm
+from parselmouth import Sound
 from parselmouth import praat
 from promdetect.prep import process_annotations, find_syllable_nuclei, extract_features
 
@@ -315,7 +314,7 @@ class NucleiExtractionTests(unittest.TestCase):
         Does find_peak_cands find all the peaks it can be expected to find?
         """
 
-        snd_obj = pm.Sound("tests/test_material/test.wav")
+        snd_obj = Sound("tests/test_material/test.wav")
         snd_denoised = praat.call(
             snd_obj, "Remove noise", 0, 0, 0.025, 75, 10_000, 40, "Spectral subtraction"
         )
@@ -323,7 +322,7 @@ class NucleiExtractionTests(unittest.TestCase):
 
         threshold = 60.13517359983467
 
-        peak_candidates = find_peak_cands(intensity_obj, threshold)
+        peak_candidates = find_syllable_nuclei.find_peak_cands(intensity_obj, threshold)
 
         self.assertTrue(len(peak_candidates) == 16)
         self.assertAlmostEqual(peak_candidates[5][1], 70.635, places=3)
