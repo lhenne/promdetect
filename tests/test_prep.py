@@ -339,7 +339,7 @@ class FeatureExtractionTests(unittest.TestCase):
         Does the RMS calculation using Praat work properly?
         """
 
-        snd_obj = pm.Sound("tests/test_material/feature_extraction/test.wav")
+        wav_file = "tests/test_material/feature_extraction/test.wav"
 
         nuclei_df = DataFrame(
             [
@@ -352,7 +352,9 @@ class FeatureExtractionTests(unittest.TestCase):
             columns=["start_est", "end", "phone"],
         )
 
-        rms = np.around(extract_features.get_rms(snd_obj, nuclei_df), decimals=4)
+        tester = extract_features.Extractor(wav_file, nuclei=nuclei_df)
+
+        rms = np.around(tester.get_rms(), decimals=4)
 
         expected_vals = np.around(
             np.array(
@@ -374,8 +376,7 @@ class FeatureExtractionTests(unittest.TestCase):
         Does the intensity extraction (dB) using Praat work properly?
         """
 
-        snd_obj = pm.Sound("tests/test_material/feature_extraction/test.wav")
-        int_obj = snd_obj.to_intensity(minimum_pitch=75)
+        wav_file = "tests/test_material/feature_extraction/test.wav"
 
         nuclei_df = DataFrame(
             [
@@ -388,9 +389,10 @@ class FeatureExtractionTests(unittest.TestCase):
             columns=["start_est", "end", "phone"],
         )
 
-        intensities = np.around(
-            extract_features.get_intensity_nuclei(int_obj, nuclei_df), decimals=4
-        )
+        tester = extract_features.Extractor(wav_file, nuclei=nuclei_df)
+        tester.calc_intensity()
+
+        intensities = np.around(tester.get_intensity_nuclei(), decimals=4)
 
         expected_vals = np.around(
             np.array(
@@ -412,17 +414,17 @@ class FeatureExtractionTests(unittest.TestCase):
         Does the intensity extraction (dB) for intonation phrases work properly?
         """
 
-        snd_obj = pm.Sound("tests/test_material/feature_extraction/test.wav")
-        int_obj = snd_obj.to_intensity(minimum_pitch=75)
+        wav_file = "tests/test_material/feature_extraction/test.wav"
 
         ip_df = DataFrame(
             [(11.41, 13.91), (13.911, 16.2), (16.201, 18.91)],
             columns=["ip_start", "ip_end"],
         )
 
-        intensities = np.around(
-            extract_features.get_intensity_ip(int_obj, ip_df), decimals=4
-        )
+        tester = extract_features.Extractor(wav_file, ip=ip_df)
+        tester.calc_intensity()
+
+        intensities = np.around(tester.get_intensity_ip(), decimals=4)
 
         expected_vals = np.around(
             np.array([75.39665468978198, 71.55360893937386, 70.32496318148395]),
@@ -436,8 +438,7 @@ class FeatureExtractionTests(unittest.TestCase):
         Does the F0 peak extraction for syllable nuclei work properly?
         """
 
-        snd_obj = pm.Sound("tests/test_material/feature_extraction/test.wav")
-        pitch_obj = snd_obj.to_pitch(pitch_floor=75, pitch_ceiling=300)
+        wav_file = "tests/test_material/feature_extraction/test.wav"
 
         nuclei_df = DataFrame(
             [
@@ -450,18 +451,19 @@ class FeatureExtractionTests(unittest.TestCase):
             columns=["start_est", "end", "phone"],
         )
 
-        f0s = np.around(
-            extract_features.get_f0_nuclei(pitch_obj, nuclei_df), decimals=4
-        )
+        tester = extract_features.Extractor(wav_file, nuclei=nuclei_df, gender="m")
+        tester.calc_pitch()
+
+        f0s = np.around(tester.get_f0_nuclei(), decimals=4)
 
         expected_vals = np.around(
             np.array(
                 [
-                    117.78518230616625,
-                    122.91202304558337,
-                    134.8601674833045,
-                    136.44637556861306,
-                    151.78116500023737,
+                    117.87253295571392,
+                    123.1675694877848,
+                    134.76548248292062,
+                    136.5251634214678,
+                    151.56666619140884,
                 ]
             ),
             decimals=4,
@@ -474,26 +476,34 @@ class FeatureExtractionTests(unittest.TestCase):
         Does the extraction of pitch excursion across the intonation phrase work correctly?
         """
 
-        snd_obj = pm.Sound("tests/test_material/feature_extraction/test.wav")
-        pitch_obj = snd_obj.to_pitch(pitch_floor=75, pitch_ceiling=300)
+        wav_file = "tests/test_material/feature_extraction/test.wav"
 
         nuclei_df = DataFrame(
             [
-                (11.41, 11.52, "I", 11.41, 13.91, 117.78518230616625),
-                (11.63, 11.72, "e:", 11.41, 13.91, 122.91202304558337),
-                (11.79, 11.85, "I", 11.41, 13.91, 134.8601674833045),
-                (11.96, 12.03, "U", 11.41, 13.91, 136.44637556861306),
-                (12.16, 12.24, "o:", 11.41, 13.91, 151.78116500023737),
+                (11.41, 11.52, "I", 11.41, 13.91, 117.87253295571392),
+                (11.63, 11.72, "e:", 11.41, 13.91, 123.1675694877848),
+                (11.79, 11.85, "I", 11.41, 13.91, 134.76548248292062),
+                (11.96, 12.03, "U", 11.41, 13.91, 136.5251634214678),
+                (12.16, 12.24, "o:", 11.41, 13.91, 151.56666619140884),
             ],
             columns=["start_est", "end", "phone", "ip_start", "ip_end", "f0_max"],
         )
 
-        excursions = np.around(
-            extract_features.get_excursion(pitch_obj, nuclei_df, "ip"), decimals=4
-        )
+        tester = extract_features.Extractor(wav_file, nuclei=nuclei_df, gender="m")
+        tester.calc_pitch()
+
+        excursions = np.around(tester.get_excursion("ip"), decimals=4)
 
         expected_vals = np.around(
-            np.array([4.1047679, 4.8423838, 6.4484428, 6.6508801, 8.4947845]),
+            np.array(
+                [
+                    4.729683832131741,
+                    5.4904221848570725,
+                    7.04836523259897,
+                    7.272955525472149,
+                    9.082382906784996,
+                ]
+            ),
             decimals=4,
         )
 
@@ -504,26 +514,34 @@ class FeatureExtractionTests(unittest.TestCase):
         Does the extraction of pitch excursion across the word work correctly?
         """
 
-        snd_obj = pm.Sound("tests/test_material/feature_extraction/test.wav")
-        pitch_obj = snd_obj.to_pitch(pitch_floor=75, pitch_ceiling=300)
+        wav_file = "tests/test_material/feature_extraction/test.wav"
 
         nuclei_df = DataFrame(
             [
-                (11.41, 11.52, "I", 11.41, 11.6, 117.78518230616625),
-                (11.63, 11.72, "e:", 11.6, 11.75, 122.91202304558337),
-                (11.79, 11.85, "I", 11.75, 12.3, 134.8601674833045),
-                (11.96, 12.03, "U", 11.75, 12.3, 136.44637556861306),
-                (12.16, 12.24, "o:", 11.75, 12.3, 151.78116500023737),
+                (11.41, 11.52, "I", 11.41, 11.6, 117.87253295571392),
+                (11.63, 11.72, "e:", 11.6, 11.75, 123.1675694877848),
+                (11.79, 11.85, "I", 11.75, 12.3, 134.76548248292062),
+                (11.96, 12.03, "U", 11.75, 12.3, 136.5251634214678),
+                (12.16, 12.24, "o:", 11.75, 12.3, 151.56666619140884),
             ],
             columns=["start_est", "end", "phone", "word_start", "word_end", "f0_max"],
         )
 
-        excursions = np.around(
-            extract_features.get_excursion(pitch_obj, nuclei_df, "word"), decimals=4
-        )
+        tester = extract_features.Extractor(wav_file, nuclei=nuclei_df, gender="m")
+        tester.calc_pitch()
+
+        excursions = np.around(tester.get_excursion("word"), decimals=4)
 
         expected_vals = np.around(
-            np.array([0.99153444, 1.8870335, 3.3529092, 3.5553466, 5.399251]),
+            np.array(
+                [
+                    0.9820240572061552,
+                    1.756133256029977,
+                    3.216669606719651,
+                    3.44125989959283,
+                    5.2506872809056775,
+                ]
+            ),
             decimals=4,
         )
 
@@ -533,6 +551,8 @@ class FeatureExtractionTests(unittest.TestCase):
         """
         Are normalized durations relative to remainder of the intonation phrase extracted correctly?
         """
+
+        wav_file = "tests/test_material/feature_extraction/test.wav"
 
         nuclei_df = DataFrame(
             [
@@ -545,9 +565,9 @@ class FeatureExtractionTests(unittest.TestCase):
             columns=["start_est", "end", "phone", "ip_start", "ip_end"],
         )
 
-        durations = np.around(
-            extract_features.get_duration_normed(nuclei_df), decimals=4
-        )
+        tester = extract_features.Extractor(wav_file, nuclei=nuclei_df)
+
+        durations = np.around(tester.get_duration_normed(), decimals=4)
 
         expected_vals = np.around(
             np.array([1.3414634, 1.097561, 0.73170732, 0.85365854, 0.97560976]),
