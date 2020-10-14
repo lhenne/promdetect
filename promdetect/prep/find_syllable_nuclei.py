@@ -92,7 +92,7 @@ def get_nucleus_points(sound_file):
 # ANCILLARY FUNCTIONS
 
 
-def assign_points_labels(nuclei, phones, words):
+def assign_points_labels(nuclei, phones, words, tones):
     """
     This function assigns phone and word labels, as well as phone boundaries and the corresponding durations.
     """
@@ -101,7 +101,19 @@ def assign_points_labels(nuclei, phones, words):
     words_filtered = filter_labels(words, "words")
 
     assigned_df = DataFrame(  # prepare empty DF to insert all the combined data into
-        columns=["nucl_time", "phone", "word", "start_est", "end", "duration_est"]
+        columns=[
+            "nucl_time",
+            "phone",
+            "word",
+            "bound_tone",
+            "start_est",
+            "end",
+            "duration_est",
+            "word_start",
+            "word_end",
+            "ip_start",
+            "ip_end",
+        ]
     )
 
     assigned_df["nucl_time"] = nuclei
@@ -111,16 +123,34 @@ def assign_points_labels(nuclei, phones, words):
             (phones_filtered["start_est"] <= row.nucl_time)
             & (phones_filtered["end"] >= row.nucl_time)
         ].to_numpy()
+
         match_words = words_filtered.loc[
             (words_filtered["start_est"] <= row.nucl_time)
             & (words_filtered["end"] >= row.nucl_time)
-        ]["label"].array
+        ]
+        match_words = match_words.rename(
+            columns={"start_est": "word_start", "end": "word_end"}
+        ).to_numpy()
+
+        match_tones = tones.loc[
+            (tones["start_est"] <= row.nucl_time) & (tones["time"] >= row.nucl_time)
+        ]
+        match_tones = match_tones.rename(
+            columns={"start_est": "ip_start", "time": "ip_end"}
+        ).to_numpy()
 
         if match_phones.any():
             assigned_df.at[row.Index, ["end", "phone", "start_est"]] = match_phones[0]
 
         if match_words.any():
-            assigned_df.at[row.Index, "word"] = match_words[0]
+            assigned_df.at[row.Index, ["word_end", "word", "word_start"]] = match_words[
+                0
+            ]
+
+        if match_tones.any():
+            assigned_df.at[
+                row.Index, ["ip_end", "bound_tone", "ip_start"]
+            ] = match_tones[0]
 
         assigned_df["duration_est"] = assigned_df["end"] - assigned_df["start_est"]
         assigned_df.round({"duration_est": 4})
