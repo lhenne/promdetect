@@ -16,7 +16,6 @@ import logging
 
 
 class AnnotationReader(str):
-
     def __init__(self, annotation_file):
         self.annotation_file = annotation_file
 
@@ -172,5 +171,18 @@ def content_to_df(content, annotation_type):
         ).drop(
             ["xwaves"], axis=1  # Drop unnecessary xwaves column straight away)
         )
+
+        if annotation_type == "tones":
+            content_as_df["start_est"] = nan
+
+            num_rows = len(content_as_df.index)
+
+            for i in content_as_df.index:
+                if i <= num_rows and i > 0:
+                    content_as_df.at[i, "start_est"] = (
+                        content_as_df.loc[i - 1, "time"] + 0.0001
+                    )
+                else:
+                    pass
 
     return content_as_df
