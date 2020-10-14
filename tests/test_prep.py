@@ -7,7 +7,12 @@ from pandas import DataFrame
 import numpy as np
 from parselmouth import Sound
 from parselmouth import praat
-from promdetect.prep import process_annotations, find_syllable_nuclei, extract_features
+from promdetect.prep import (
+    process_annotations,
+    find_syllable_nuclei,
+    extract_features,
+    prepare_data,
+)
 
 
 class AnnotationImportTests(unittest.TestCase):
@@ -45,7 +50,7 @@ class AnnotationImportTests(unittest.TestCase):
         Test get_annotation_data(): Do invalid input types produce an error?
         """
 
-        annotation_file = "tests/test_material/test.phrases"
+        annotation_file = "tests/test_material/test.tones"
 
         with self.assertRaises(ValueError):
             tester = process_annotations.AnnotationReader(annotation_file)
@@ -574,3 +579,20 @@ class FeatureExtractionTests(unittest.TestCase):
         )
 
         self.assertTrue(np.array_equal(durations, expected_vals, equal_nan=True))
+
+
+class FeatureSetTests(unittest.TestCase):
+    """
+    Tests the functions in prepare_data.py
+    """
+
+    def test_run_method_from_config(self):
+        """
+        Can methods be called from the config successfully?
+        """
+
+        tester = prepare_data.FeatureSet("tests/test_material/config.json", "test")
+        data = tester.run_config()
+
+        self.assertTrue(isinstance(data, dict))
+        self.assertTrue("rms" in data.keys())

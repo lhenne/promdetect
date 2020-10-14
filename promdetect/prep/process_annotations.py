@@ -12,6 +12,7 @@ import pandas as pd
 from io import StringIO
 from pathlib import Path
 from numpy import nan
+import logging
 
 
 class AnnotationReader(str):
@@ -76,12 +77,14 @@ class AnnotationReader(str):
                     if speaker_id != "" and speaker_gender in ["m", "f"]:
                         return (speaker_id, speaker_gender)
                     else:
-                        raise ValueError(
+                        logging.warning(
                             "Speaker ID and/or gender could not be determined."
                         )
+                        return ("unknown", "f")
 
             if not found_id:
-                raise ValueError("Supplied recording ID could not be found.")
+                logging.warning("Supplied recording ID could not be found.")
+                return ("unknown", "f")
 
 
 # ANCILLARY FUNCTIONS
