@@ -84,15 +84,25 @@ class Extractor(object):
 
         check_input_df(self.nuclei, ["start_est", "end", "ip_start", "ip_end"])
 
-        self.nuclei["duration"] = self.nuclei["end"] - self.nuclei["start_est"]
+        self.nuclei["duration"] = pd.Series(
+            self.nuclei["end"] - self.nuclei["start_est"], dtype="float64"
+        )
 
-        ip_mean = self.nuclei.groupby(["ip_start", "ip_end"], as_index=False).mean()
-        ip_mean = ip_mean[["ip_start", "ip_end", "duration"]]
-        ip_mean = ip_mean.rename(columns={"duration": "mean_ip_dur"})
+        if list(self.nuclei["duration"]) != []:
+            ip_mean = (
+                self.nuclei[["ip_start", "ip_end", "duration"]]
+                .groupby(["ip_start", "ip_end"], as_index=False)
+                .mean()
+            )
+            ip_mean = ip_mean.rename(columns={"duration": "mean_ip_dur"})
 
-        durs_df = pd.merge(self.nuclei, ip_mean, how="left", on=["ip_start", "ip_end"])
+            durs_df = pd.merge(
+                self.nuclei, ip_mean, how="left", on=["ip_start", "ip_end"]
+            )
 
-        normed_durs = (durs_df["duration"] / durs_df["mean_ip_dur"]).to_numpy()
+            normed_durs = (durs_df["duration"] / durs_df["mean_ip_dur"]).to_numpy()
+        else:
+            normed_durs = np.empty([])
 
         return normed_durs
 
@@ -103,26 +113,30 @@ class Extractor(object):
 
         check_input_df(self.nuclei, ["start_est", "end"])
 
-        intens_max = np.array(
+        nuclei_filtered = self.nuclei[
+            (self.nuclei["start_est"].notna()) & (self.nuclei["end"].notna())
+        ].copy()
+
+        nuclei_filtered["intens_max"] = np.array(
             [
                 praat.call(self.int_obj, "Get maximum", row.start_est, row.end, "None")
-                for row in self.nuclei.itertuples()
+                for row in nuclei_filtered.itertuples()
             ]
         )
 
-        return intens_max
+        return nuclei_filtered["intens_max"]
 
     def get_intensity_ip(self):
         """
         This function extracts the mean intensity value for each intonation phrase
         """
 
-        check_input_df(self.ip, ["ip_start", "ip_end"])
+        check_input_df(self.nuclei, ["ip_start", "ip_end"])
 
         intens_avg = np.array(
             [
                 praat.call(self.int_obj, "Get mean", row.ip_start, row.ip_end, "energy")
-                for row in self.ip.itertuples()
+                for row in self.nuclei.itertuples()
             ]
         )
 
@@ -135,19 +149,20 @@ class Extractor(object):
 
         check_input_df(self.nuclei, ["start_est", "end"])
 
-        f0_max = np.array(
-            [
-                praat.call(
-                    self.pitch_obj,
-                    "Get maximum",
-                    row.start_est,
-                    row.end,
-                    "Hertz",
-                    "None",
-                )
-                for row in self.nuclei.itertuples()
-            ]
-        )
+        nuclei_filtered = self.nuclei[
+            (self.nuclei["start_est"].notna()) & (self.nuclei["end"].notna())
+        ].copy()
+
+        nuclei_filtered["f0_max"] = [
+            praat.call(
+                self.pitch_obj, "Get maximum", row.start_est, row.end, "Hertz", "None",
+            )
+            for row in nuclei_filtered.itertuples()
+        ]
+
+        f0_max = nuclei_filtered["f0_max"]
+
+        self.nuclei["f0_max"] = f0_max
 
         return f0_max
 
@@ -159,9 +174,11 @@ class Extractor(object):
         if level == "word":
             check_input_df(self.nuclei, ["word_start", "word_end", "f0_max"])
 
-            timestamps = self.nuclei[["word_start", "word_end"]].drop_duplicates()
+            timestamps_filtered = self.nuclei[
+                (self.nuclei["word_start"].notna()) & (self.nuclei["word_end"].notna())
+            ].copy()
 
-            timestamps["f0_q10"] = [
+            timestamps_filtered["f0_q10"] = [
                 praat.call(
                     self.pitch_obj,
                     "Get quantile",
@@ -170,19 +187,17 @@ class Extractor(object):
                     0.1,
                     "Hertz",
                 )
-                for row in timestamps.itertuples()
+                for row in timestamps_filtered.itertuples()
             ]
 
-            norm_df = pd.merge(
-                self.nuclei, timestamps, on=["word_start", "word_end"], how="left"
-            )
+            norm_df = pd.merge(self.nuclei, timestamps_filtered, how="left")
 
         elif level == "ip":
             check_input_df(self.nuclei, ["ip_start", "ip_end", "f0_max"])
 
-            timestamps = self.nuclei[["ip_start", "ip_end"]].drop_duplicates()
+            timestamps_filtered = self.nuclei[["ip_start", "ip_end"]].drop_duplicates()
 
-            timestamps["f0_q10"] = [
+            timestamps_filtered["f0_q10"] = [
                 praat.call(
                     self.pitch_obj,
                     "Get quantile",
@@ -191,11 +206,11 @@ class Extractor(object):
                     0.1,
                     "Hertz",
                 )
-                for row in timestamps.itertuples()
+                for row in timestamps_filtered.itertuples()
             ]
 
             norm_df = pd.merge(
-                self.nuclei, timestamps, on=["ip_start", "ip_end"], how="left"
+                self.nuclei, timestamps_filtered, on=["ip_start", "ip_end"], how="left"
             )
 
         else:
