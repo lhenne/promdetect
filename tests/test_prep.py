@@ -50,7 +50,7 @@ class AnnotationImportTests(unittest.TestCase):
         Test get_annotation_data(): Do invalid input types produce an error?
         """
 
-        annotation_file = "tests/test_material/test.tones"
+        annotation_file = "tests/test_material/test.phrases"
 
         with self.assertRaises(ValueError):
             tester = process_annotations.AnnotationReader(annotation_file)
@@ -119,14 +119,17 @@ class AnnotationImportTests(unittest.TestCase):
 
     def test_invalid_id(self):
         """
-        Test get_speaker_info(): Does an invalid recording ID as input raise the appropriate error?
+        Test get_speaker_info(): Does an invalid recording ID as input return the correct tuple?
         """
 
         recording_id = "notarealid2005-08-20-1500"
 
-        with self.assertRaises(ValueError):
-            tester = process_annotations.AnnotationReader(recording_id)
-            tester.get_speaker_info()
+        expected_output = ("unknown", "f")
+
+        tester = process_annotations.AnnotationReader(recording_id)
+        output = tester.get_speaker_info()
+
+        self.assertTrue(expected_output == output)
 
     def test_speaker_info(self):
         """
@@ -234,8 +237,13 @@ class NucleiExtractionTests(unittest.TestCase):
             columns=["end", "label", "start_est"],
         )
 
+        tones_df = DataFrame(
+            [(25.87, "<P>", 22.0), (28.5, "%", 25.8701)],
+            columns=["time", "label", "start_est"],
+        )
+
         assigned_df = find_syllable_nuclei.assign_points_labels(
-            nucleus_points, phones=phones_df, words=words_df
+            nucleus_points, phones=phones_df, words=words_df, tones=tones_df
         )
 
         self.assertTrue(len(assigned_df) == 4)
@@ -278,8 +286,13 @@ class NucleiExtractionTests(unittest.TestCase):
             columns=["end", "label", "start_est"],
         )
 
+        tones_df = DataFrame(
+            [(25.87, "<P>", 22.0), (28.5, "%", 25.8701)],
+            columns=["time", "label", "start_est"],
+        )
+
         assigned_df = find_syllable_nuclei.assign_points_labels(
-            nucleus_points, phones=phones_df, words=words_df
+            nucleus_points, phones=phones_df, words=words_df, tones=tones_df
         )
 
         self.assertTrue(list(assigned_df["end"]) == [26.16, np.nan, 26.49, 26.74])
@@ -591,8 +604,37 @@ class FeatureSetTests(unittest.TestCase):
         Can methods be called from the config successfully?
         """
 
-        tester = prepare_data.FeatureSet("tests/test_material/config.json", "test")
+        tester = prepare_data.FeatureSet("tests/test_material/config_rms.json", "test")
         data = tester.run_config()
 
         self.assertTrue(isinstance(data, dict))
         self.assertTrue("rms" in data.keys())
+
+    def test_run_excursion_with_arguments(self):
+        """
+        Can the excursion method be run with arguments?
+        """
+
+        tester = prepare_data.FeatureSet(
+            "tests/test_material/config_excursion_args.json", "test"
+        )
+        data = tester.run_config()
+
+        self.assertTrue(isinstance(data, dict))
+        self.assertTrue("excursion_word" in data.keys())
+        self.assertTrue("excursion_ip" in data.keys())
+
+    def test_run_multi_methods(self):
+        """
+        Can the class methods call multiple methods without any issues?
+        """
+
+        tester = prepare_data.FeatureSet(
+            "tests/test_material/config_multi.json", "test"
+        )
+        data = tester.run_config()
+
+        self.assertTrue(isinstance(data, dict))
+        self.assertTrue("rms" in data.keys())
+        self.assertTrue("duration_normed" in data.keys())
+        self.assertTrue("intensity_nuclei" in data.keys())
