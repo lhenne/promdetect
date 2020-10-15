@@ -6,6 +6,7 @@ Import necessary packages:
 
 from pathlib import Path
 import json
+from glob import glob
 from promdetect.prep import process_annotations, find_syllable_nuclei, extract_features
 
 """
@@ -16,11 +17,14 @@ This file coordinates and collects data by running functions defined in some of
 the other files in this directory.
 """
 
+CFG_FILE = "/home/lukas/Dokumente/Uni/ma_thesis/promdetect/promdetect/prep/config.json" 
+with open(CFG_FILE, "r") as cfg:
+    CONFIG = json.load(cfg)
+
 
 class FeatureSet:
     def __init__(self, config, recording):
-        with open(config, "r") as cfg:
-            self.config = json.load(cfg)
+        self.config = config
         self.recording = recording
         self.wav_file = str(
             Path(self.config["directory"]).joinpath(f"{self.recording}.wav")

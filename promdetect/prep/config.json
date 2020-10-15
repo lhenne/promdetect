@@ -1,0 +1,16 @@
+{
+    "directory": "/home/lukas/Dokumente/Uni/ma_thesis/quelldaten/DIRNDL-prosody",
+    "find_nuclei": true,
+    "nuclei_dir": "",
+    "features": {
+        "rms": true,
+        "duration_normed": true,
+        "intensity_nuclei": true,
+        "intensity_ip": true,
+        "f0_nuclei": true,
+        "excursion": true
+    },
+    "features_input": {
+        "excursion": ["word", "ip"]
+    }
+}
