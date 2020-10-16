@@ -1,12 +1,5 @@
-"""
-Import necessary packages:
-`pandas` to manage data
-`parselmouth` to send commands to the Praat phonetics software
-"""
-
 from pathlib import Path
 import json
-from glob import glob
 from promdetect.prep import process_annotations, find_syllable_nuclei, extract_features
 
 """
@@ -17,7 +10,7 @@ This file coordinates and collects data by running functions defined in some of
 the other files in this directory.
 """
 
-CFG_FILE = "/home/lukas/Dokumente/Uni/ma_thesis/promdetect/promdetect/prep/config.json" 
+CFG_FILE = "/home/lukas/Dokumente/Uni/ma_thesis/promdetect/promdetect/prep/config.json"
 with open(CFG_FILE, "r") as cfg:
     CONFIG = json.load(cfg)
 
@@ -53,7 +46,7 @@ class FeatureSet:
             extractor = extract_features.Extractor(
                 self.wav_file, self.nuclei, self.tones, self.speaker[0], self.speaker[1]
             )
-            features = {}
+            features = self.nuclei.copy()
 
             for func_to_run in to_extract:
                 self.call_function(extractor, features, func_to_run)
@@ -63,7 +56,7 @@ class FeatureSet:
         else:
             pass
 
-    def call_function(self, extractor, features_dict, func_to_run):
+    def call_function(self, extractor, features_df, func_to_run):
         if func_to_run == "excursion":
             levels = self.config["features_input"]["excursion"]
             if not hasattr(extractor, "pitch_obj"):
@@ -73,24 +66,23 @@ class FeatureSet:
                 self.nuclei["f0_max"] = extractor.get_f0_nuclei()
 
             for level in levels:
-                key = f"excursion_{level}"
-                features_dict[key] = extractor.get_excursion(level)
+                features_df[f"excursion_{level}"] = extractor.get_excursion(level)
 
         else:
             if func_to_run in ["intensity_nuclei", "intensity_ip"]:
                 if not hasattr(extractor, "intensity_obj"):
                     extractor.calc_intensity()
 
-                features_dict[func_to_run] = eval(f"extractor.get_{func_to_run}()")
+                features_df[func_to_run] = eval(f"extractor.get_{func_to_run}()")
 
             elif func_to_run == "f0_nuclei":
                 if not hasattr(extractor, "pitch_obj"):
                     extractor.calc_pitch()
 
-                features_dict[func_to_run] = eval(f"extractor.get_{func_to_run}()")
+                features_df[func_to_run] = eval(f"extractor.get_{func_to_run}()")
 
             else:
-                features_dict[func_to_run] = eval(f"extractor.get_{func_to_run}()")
+                features_df[func_to_run] = eval(f"extractor.get_{func_to_run}()")
 
     def collect_annotations(self, annotation_type):
         file = Path(self.config["directory"]).joinpath(
