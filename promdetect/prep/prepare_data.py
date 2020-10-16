@@ -35,9 +35,11 @@ class FeatureSet:
 
         if self.config["find_nuclei"]:
             points = find_syllable_nuclei.get_nucleus_points(self.wav_file)
-            self.nuclei = find_syllable_nuclei.assign_points_labels(
-                points, self.phones, self.words, self.tones
+            self.nuclei_raw = find_syllable_nuclei.assign_points_labels(
+                points, self.phones, self.words, self.tones, self.accents
             )
+
+        self.nuclei = self.nuclei_raw.loc[self.nuclei_raw["phone"].notna()].reset_index()
 
         to_extract = [
             func for func, to_run in self.config["features"].items() if to_run
