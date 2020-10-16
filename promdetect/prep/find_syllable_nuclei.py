@@ -92,7 +92,7 @@ def get_nucleus_points(sound_file):
 # ANCILLARY FUNCTIONS
 
 
-def assign_points_labels(nuclei, phones, words, tones):
+def assign_points_labels(nuclei, phones, words, tones, accents):
     """
     This function assigns phone and word labels, as well as phone boundaries and the corresponding durations.
     """
@@ -113,6 +113,8 @@ def assign_points_labels(nuclei, phones, words, tones):
             "word_end",
             "ip_start",
             "ip_end",
+            "accent_time",
+            "accent_label",
         ]
     )
 
@@ -140,7 +142,17 @@ def assign_points_labels(nuclei, phones, words, tones):
         ).to_numpy()
 
         if match_phones.any():
+            match_accents = accents.loc[
+                (match_phones[0][2] <= accents["time"])
+                & (match_phones[0][0] >= accents["time"])
+            ].to_numpy()
+
             assigned_df.at[row.Index, ["end", "phone", "start_est"]] = match_phones[0]
+
+            if match_accents.any():
+                assigned_df.at[
+                    row.Index, ["accent_time", "accent_label"]
+                ] = match_accents[0]
 
         if match_words.any():
             assigned_df.at[row.Index, ["word_end", "word", "word_start"]] = match_words[
