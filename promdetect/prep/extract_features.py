@@ -133,14 +133,18 @@ class Extractor(object):
 
         check_input_df(self.nuclei, ["ip_start", "ip_end"])
 
-        intens_avg = np.array(
+        nuclei_filtered = self.nuclei[
+            (self.nuclei["ip_start"].notna()) & (self.nuclei["ip_end"].notna())
+        ].copy()
+
+        nuclei_filtered["intens_avg"] = np.array(
             [
                 praat.call(self.int_obj, "Get mean", row.ip_start, row.ip_end, "energy")
-                for row in self.nuclei.itertuples()
+                for row in nuclei_filtered.itertuples()
             ]
         )
 
-        return intens_avg
+        return nuclei_filtered["intens_avg"]
 
     def get_f0_nuclei(self):
         """
@@ -195,7 +199,13 @@ class Extractor(object):
         elif level == "ip":
             check_input_df(self.nuclei, ["ip_start", "ip_end", "f0_max"])
 
-            timestamps_filtered = self.nuclei[["ip_start", "ip_end"]].drop_duplicates()
+            nuclei_filtered = self.nuclei[
+                (self.nuclei["ip_start"].notna()) & (self.nuclei["ip_end"].notna())
+            ].copy()
+
+            timestamps_filtered = nuclei_filtered[
+                ["ip_start", "ip_end"]
+            ].drop_duplicates()
 
             timestamps_filtered["f0_q10"] = [
                 praat.call(
