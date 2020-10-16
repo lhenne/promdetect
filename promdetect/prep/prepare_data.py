@@ -1,5 +1,6 @@
 from pathlib import Path
 import json
+from glob import glob
 from promdetect.prep import process_annotations, find_syllable_nuclei, extract_features
 
 """
@@ -89,3 +90,20 @@ class FeatureSet:
             f"{self.recording}.{annotation_type}"
         )
         return process_annotations.AnnotationReader(file).get_annotation_data()
+
+
+if __name__ == "__main__":
+    """
+    Call for all recordings
+    """
+    directory = CONFIG["directory"]
+    recordings = [Path(file).stem for file in glob(f"{directory}/*.wav")]
+
+    out_dir = "/home/lukas/Dokumente/Uni/ma_thesis/promdetect/data/features/"
+
+    for recording in recordings:
+        feature_set = FeatureSet(CONFIG, recording)
+        feature_data = feature_set.run_config()
+
+        with open(out_dir + recording, "w+") as out_file:
+            feature_data.to_csv(out_file)
