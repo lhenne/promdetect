@@ -32,12 +32,10 @@ def check_input_df(input_df, expected_cols):
 
 
 class Extractor(object):
-    def __init__(self, wav_file, nuclei="", ip="", speaker="", gender="f"):
+    def __init__(self, wav_file, nuclei="", gender="f"):
         self.wav_file = wav_file
         self.snd_obj = pm.Sound(self.wav_file)
         self.nuclei = nuclei
-        self.ip = ip
-        self.speaker = speaker
         self.gender = gender
 
         if gender == "f":
@@ -137,7 +135,9 @@ class Extractor(object):
             (self.nuclei["ip_start"].notna()) & (self.nuclei["ip_end"].notna())
         ].copy()
 
-        nuclei_filtered["intens_avg"] = np.array(
+        nuclei_filtered[
+            "intens_avg"
+        ] = np.array(  # TODO: this runs for each row, not for each IP
             [
                 praat.call(self.int_obj, "Get mean", row.ip_start, row.ip_end, "energy")
                 for row in nuclei_filtered.itertuples()

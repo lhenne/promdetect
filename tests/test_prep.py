@@ -5,6 +5,7 @@ Code to test functions in the `prep` submodule
 import unittest
 from pandas import DataFrame
 import numpy as np
+import json
 from parselmouth import Sound
 from parselmouth import praat
 from promdetect.prep import (
@@ -136,7 +137,7 @@ class AnnotationImportTests(unittest.TestCase):
         Test get_speaker_info(): Does the function return the correct data for a given recording?
         """
 
-        recording_id = "200703260600"
+        recording_id = "dlf-nachrichten-200703260600"
         correct_output = ("2", "f")
 
         tester = process_annotations.AnnotationReader(recording_id)
@@ -242,8 +243,22 @@ class NucleiExtractionTests(unittest.TestCase):
             columns=["time", "label", "start_est"],
         )
 
+        accents_df = DataFrame(
+            [
+                (26.515000, "LH*L"),
+                (27.623440, "L*H"),
+                (27.995732, "H*L"),
+                (28.682547, "!H*L"),
+            ],
+            columns=["time", "label"],
+        )
+
         assigned_df = find_syllable_nuclei.assign_points_labels(
-            nucleus_points, phones=phones_df, words=words_df, tones=tones_df
+            nucleus_points,
+            phones=phones_df,
+            words=words_df,
+            tones=tones_df,
+            accents=accents_df,
         )
 
         self.assertTrue(len(assigned_df) == 4)
@@ -291,8 +306,22 @@ class NucleiExtractionTests(unittest.TestCase):
             columns=["time", "label", "start_est"],
         )
 
+        accents_df = DataFrame(
+            [
+                (26.515000, "LH*L"),
+                (27.623440, "L*H"),
+                (27.995732, "H*L"),
+                (28.682547, "!H*L"),
+            ],
+            columns=["time", "label"],
+        )
+
         assigned_df = find_syllable_nuclei.assign_points_labels(
-            nucleus_points, phones=phones_df, words=words_df, tones=tones_df
+            nucleus_points,
+            phones=phones_df,
+            words=words_df,
+            tones=tones_df,
+            accents=accents_df,
         )
 
         self.assertTrue(list(assigned_df["end"]) == [26.16, np.nan, 26.49, 26.74])
@@ -433,12 +462,16 @@ class FeatureExtractionTests(unittest.TestCase):
 
         wav_file = "tests/test_material/feature_extraction/test.wav"
 
-        ip_df = DataFrame(
-            [(11.41, 13.91), (13.911, 16.2), (16.201, 18.91)],
-            columns=["ip_start", "ip_end"],
+        nuclei_df = DataFrame(
+            [
+                (11.41, 11.52, "I", 11.41, 13.91),
+                (13.8, 14.1, "e:", 13.911, 16.2),
+                (16.4, 16.7, "I", 16.201, 18.91),
+            ],
+            columns=["start_est", "end", "phone", "ip_start", "ip_end"],
         )
 
-        tester = extract_features.Extractor(wav_file, ip=ip_df)
+        tester = extract_features.Extractor(wav_file, nuclei=nuclei_df)
         tester.calc_intensity()
 
         intensities = np.around(tester.get_intensity_ip(), decimals=4)
@@ -604,37 +637,42 @@ class FeatureSetTests(unittest.TestCase):
         Can methods be called from the config successfully?
         """
 
-        tester = prepare_data.FeatureSet("tests/test_material/config_rms.json", "test")
+        with open("tests/test_material/config_rms.json", "r") as cfg_file:
+            cfg = json.load(cfg_file)
+
+        tester = prepare_data.FeatureSet(cfg, "test")
         data = tester.run_config()
 
-        self.assertTrue(isinstance(data, dict))
-        self.assertTrue("rms" in data.keys())
+        self.assertTrue(isinstance(data, DataFrame))
+        self.assertTrue("rms" in data.columns)
 
     def test_run_excursion_with_arguments(self):
         """
         Can the excursion method be run with arguments?
         """
 
-        tester = prepare_data.FeatureSet(
-            "tests/test_material/config_excursion_args.json", "test"
-        )
+        with open("tests/test_material/config_excursion_args.json", "r") as cfg_file:
+            cfg = json.load(cfg_file)
+
+        tester = prepare_data.FeatureSet(cfg, "test")
         data = tester.run_config()
 
-        self.assertTrue(isinstance(data, dict))
-        self.assertTrue("excursion_word" in data.keys())
-        self.assertTrue("excursion_ip" in data.keys())
+        self.assertTrue(isinstance(data, DataFrame))
+        self.assertTrue("excursion_word" in data.columns)
+        self.assertTrue("excursion_ip" in data.columns)
 
     def test_run_multi_methods(self):
         """
         Can the class methods call multiple methods without any issues?
         """
 
-        tester = prepare_data.FeatureSet(
-            "tests/test_material/config_multi.json", "test"
-        )
+        with open("tests/test_material/config_multi.json", "r") as cfg_file:
+            cfg = json.load(cfg_file)
+
+        tester = prepare_data.FeatureSet(cfg, "test")
         data = tester.run_config()
 
-        self.assertTrue(isinstance(data, dict))
-        self.assertTrue("rms" in data.keys())
-        self.assertTrue("duration_normed" in data.keys())
-        self.assertTrue("intensity_nuclei" in data.keys())
+        self.assertTrue(isinstance(data, DataFrame))
+        self.assertTrue("rms" in data.columns)
+        self.assertTrue("duration_normed" in data.columns)
+        self.assertTrue("intensity_nuclei" in data.columns)

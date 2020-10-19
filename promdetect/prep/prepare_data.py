@@ -39,7 +39,9 @@ class FeatureSet:
                 points, self.phones, self.words, self.tones, self.accents
             )
 
-        self.nuclei = self.nuclei_raw.loc[self.nuclei_raw["phone"].notna()].reset_index()
+        self.nuclei = self.nuclei_raw.loc[
+            self.nuclei_raw["phone"].notna()
+        ].reset_index()
 
         to_extract = [
             func for func, to_run in self.config["features"].items() if to_run
@@ -47,7 +49,7 @@ class FeatureSet:
 
         if to_extract:
             extractor = extract_features.Extractor(
-                self.wav_file, self.nuclei, self.tones, self.speaker[0], self.speaker[1]
+                self.wav_file, self.nuclei, self.speaker[1]
             )
             features = self.nuclei.copy()
 

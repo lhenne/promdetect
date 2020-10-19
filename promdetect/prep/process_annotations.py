@@ -57,8 +57,13 @@ class AnnotationReader(str):
         This functions reads the file "speakers-prosodically-annotated-part.txt" and finds the supplied recording ID in that file, returning a tuple with the corresponding speaker's ID and gender.
         The ID will later be used to investigate cross-speaker similarities and differences, the gender is relevant to the calculation of acoustical features.
         """
-        
-        recording_id = self.annotation_file.split("nachrichten-")[1]
+        try:
+            recording_id = self.annotation_file.split("nachrichten-")[1]
+
+        except Exception:
+            logging.warning("Supplied recording ID has the wrong format.")
+            return ("unknown", "f")
+
         with open(
             Path(
                 "../quelldaten/DIRNDL-prosody/speakers-prosodically-annotated-part.txt"
