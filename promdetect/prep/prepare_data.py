@@ -80,7 +80,7 @@ class FeatureSet:
 
                 features_df[func_to_run] = eval(f"extractor.get_{func_to_run}()")
 
-            elif func_to_run == "f0_max_nuclei":
+            elif func_to_run["f0_max_nuclei", "f0_min_nuclei"]:
                 if not hasattr(extractor, "pitch_obj"):
                     extractor.calc_pitch()
 

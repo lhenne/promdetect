@@ -194,6 +194,17 @@ class Extractor(object):
 
         return f0_min
 
+    def get_f0_range_nuclei(self):
+        """
+        This function extracts the F0 range (max - min) for each syllable nucleus
+        """
+
+        check_input_df(self.nuclei, ["start_est", "end", "f0_min", "f0_max"])
+
+        f0_range = (self.nuclei["f0_max"] - self.nuclei["f0_min"]).to_numpy()
+
+        return f0_range
+
     def get_excursion(self, level=""):
         """
         This function extracts the pitch excursion with normalization on either the "word" level or the intonation phrase ("ip") level

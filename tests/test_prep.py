@@ -523,7 +523,7 @@ class FeatureExtractionTests(unittest.TestCase):
 
     def test_f0_extraction_nuclei_min(self):
         """
-        Does the F0 peak extraction for syllable nuclei work properly?
+        Does the F0 minimum extraction for syllable nuclei work properly?
         """
 
         wav_file = "tests/test_material/feature_extraction/test.wav"
@@ -552,6 +552,46 @@ class FeatureExtractionTests(unittest.TestCase):
                     128.16975339751528,
                     124.73456144344753,
                     138.3529433156357,
+                ]
+            ),
+            decimals=4,
+        )
+
+        self.assertTrue(np.array_equal(f0s, expected_vals, equal_nan=True))
+
+    def test_f0_extraction_nuclei_range(self):
+        """
+        Does the F0 range extraction for syllable nuclei work properly?
+        """
+
+        wav_file = "tests/test_material/feature_extraction/test.wav"
+
+        nuclei_df = DataFrame(
+            [
+                (11.41, 11.52, "I"),
+                (11.63, 11.72, "e:"),
+                (11.79, 11.85, "I"),
+                (11.96, 12.03, "U"),
+                (12.16, 12.24, "o:"),
+            ],
+            columns=["start_est", "end", "phone"],
+        )
+
+        tester = extract_features.Extractor(wav_file, nuclei=nuclei_df, gender="m")
+        tester.calc_pitch()
+        tester.get_f0_min_nuclei()
+        tester.get_f0_max_nuclei()
+
+        f0s = np.around(tester.get_f0_range_nuclei(), decimals=4)
+
+        expected_vals = np.around(
+            np.array(
+                [
+                    7.0453877222195445,
+                    9.912871858567698,
+                    6.595729085405338,
+                    11.790601978020263,
+                    13.21372287577313,
                 ]
             ),
             decimals=4,
