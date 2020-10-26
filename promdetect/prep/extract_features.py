@@ -170,6 +170,30 @@ class Extractor(object):
 
         return f0_max
 
+    def get_f0_min_nuclei(self):
+        """
+        This function extracts the minimal F0 value from each syllable nucleus
+        """
+
+        check_input_df(self.nuclei, ["start_est", "end"])
+
+        nuclei_filtered = self.nuclei[
+            (self.nuclei["start_est"].notna()) & (self.nuclei["end"].notna())
+        ].copy()
+
+        nuclei_filtered["f0_min"] = [
+            praat.call(
+                self.pitch_obj, "Get minimum", row.start_est, row.end, "Hertz", "None",
+            )
+            for row in nuclei_filtered.itertuples()
+        ]
+
+        f0_min = nuclei_filtered["f0_min"]
+
+        self.nuclei["f0_min"] = f0_min
+
+        return f0_min
+
     def get_excursion(self, level=""):
         """
         This function extracts the pitch excursion with normalization on either the "word" level or the intonation phrase ("ip") level

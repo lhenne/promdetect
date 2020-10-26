@@ -8,6 +8,7 @@
         "intensity_nuclei": true,
         "intensity_ip": true,
         "f0_max_nuclei": true,
+        "f0_min_nuclei": true,
         "excursion": true
     },
     "features_input": {
