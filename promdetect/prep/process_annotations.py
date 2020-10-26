@@ -66,7 +66,7 @@ class AnnotationReader(str):
 
         with open(
             Path(
-                "../quelldaten/DIRNDL-prosody/speakers-prosodically-annotated-part.txt"
+                "/home/lukas/Dokumente/Uni/ma_thesis/quelldaten/DIRNDL-prosody/speakers-prosodically-annotated-part.txt"
             ).resolve(),
             "r",
         ) as speakerFile:

@@ -504,7 +504,7 @@ class FeatureExtractionTests(unittest.TestCase):
         tester = extract_features.Extractor(wav_file, nuclei=nuclei_df, gender="m")
         tester.calc_pitch()
 
-        f0s = np.around(tester.get_f0_nuclei(), decimals=4)
+        f0s = np.around(tester.get_f0_max_nuclei(), decimals=4)
 
         expected_vals = np.around(
             np.array(

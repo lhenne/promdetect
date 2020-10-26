@@ -68,7 +68,7 @@ class FeatureSet:
                 extractor.calc_pitch()
 
             if "f0_max" not in self.nuclei.columns:
-                self.nuclei["f0_max"] = extractor.get_f0_nuclei()
+                self.nuclei["f0_max"] = extractor.get_f0_max_nuclei()
 
             for level in levels:
                 features_df[f"excursion_{level}"] = extractor.get_excursion(level)
@@ -80,7 +80,7 @@ class FeatureSet:
 
                 features_df[func_to_run] = eval(f"extractor.get_{func_to_run}()")
 
-            elif func_to_run == "f0_nuclei":
+            elif func_to_run == "f0_max_nuclei":
                 if not hasattr(extractor, "pitch_obj"):
                     extractor.calc_pitch()
 

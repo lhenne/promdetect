@@ -146,7 +146,7 @@ class Extractor(object):
 
         return nuclei_filtered["intens_avg"]
 
-    def get_f0_nuclei(self):
+    def get_f0_max_nuclei(self):
         """
         This function extracts the F0 peak value in each syllable nucleus
         """

@@ -7,7 +7,7 @@
         "duration_normed": true,
         "intensity_nuclei": true,
         "intensity_ip": true,
-        "f0_nuclei": true,
+        "f0_max_nuclei": true,
         "excursion": true
     },
     "features_input": {
