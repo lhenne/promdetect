@@ -264,3 +264,34 @@ class Extractor(object):
         excursions = np.array(12 * np.log2(norm_df["f0_max"] / norm_df["f0_q10"]))
 
         return excursions
+
+    def get_spectral_tilt_mean(self):
+        """
+        Calculate the spectral tilt over the timespan of the syllable nucleus.
+        Spectral tilt definition: Mean value of the first Mel-frequency cepstral coefficient (C1).
+        Values are extracted from Praat MFCC objects.
+        """
+
+        check_input_df(self.nuclei, ["start_est", "end"])
+
+        timestamps_filtered = self.nuclei[
+            (self.nuclei["start_est"].notna()) & (self.nuclei["end"].notna())
+        ].copy()
+
+        def calc_tilt(
+            snd_obj, start, end
+        ):  # ancillary function to calculcate spectral tilt as mean C1 value over syllable nucleus
+            nucl_obj = snd_obj.extract_part(from_time=start, to_time=end)
+            nucl_mfcc = nucl_obj.to_mfcc(number_of_coefficients=1)
+            nucl_tilt = np.mean(nucl_mfcc.to_array()[1])
+
+            return nucl_tilt
+
+        timestamps_filtered["tilt_mean"] = [
+            calc_tilt(self.snd_obj, row.start_est, row.end)
+            for row in timestamps_filtered.itertuples()
+        ]
+
+        tilt_mean = timestamps_filtered["tilt_mean"]
+
+        return tilt_mean
