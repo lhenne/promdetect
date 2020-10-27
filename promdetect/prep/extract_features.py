@@ -295,3 +295,33 @@ class Extractor(object):
         tilt_mean = timestamps_filtered["tilt_mean"]
 
         return tilt_mean
+
+    def get_spectral_tilt_range(self):
+        """
+        Calculate the spectral tilt range (max - min) over the timespan of the syllable nucleus.
+        Values are extracted from Praat MFCC objects.
+        """
+
+        check_input_df(self.nuclei, ["start_est", "end"])
+
+        timestamps_filtered = self.nuclei[
+            (self.nuclei["start_est"].notna()) & (self.nuclei["end"].notna())
+        ].copy()
+
+        def calc_tilt_range(
+            snd_obj, start, end
+        ):  # ancillary function to calculcate spectral tilt as mean C1 value over syllable nucleus
+            nucl_obj = snd_obj.extract_part(from_time=start, to_time=end)
+            nucl_mfcc = nucl_obj.to_mfcc(number_of_coefficients=1).to_array()[1]
+            nucl_tilt = max(nucl_mfcc) - min(nucl_mfcc)
+
+            return nucl_tilt
+
+        timestamps_filtered["tilt_range"] = [
+            calc_tilt_range(self.snd_obj, row.start_est, row.end)
+            for row in timestamps_filtered.itertuples()
+        ]
+
+        tilt_range = timestamps_filtered["tilt_range"]
+
+        return tilt_range

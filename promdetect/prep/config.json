@@ -11,7 +11,8 @@
         "f0_min_nuclei": true,
         "f0_range_nuclei": true,
         "excursion": true,
-        "spectral_tilt_mean": true
+        "spectral_tilt_mean": true,
+        "spectral_tilt_range": true
     },
     "features_input": {
         "excursion": ["word", "ip"]

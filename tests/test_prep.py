@@ -724,7 +724,9 @@ class FeatureExtractionTests(unittest.TestCase):
 
         tester = extract_features.Extractor(wav_file, nuclei=nuclei_df, gender="m")
 
-        tilt = np.around(tester.get_spectral_tilt_mean(), decimals=0)  # crude rounding factor due to problem with disparity between Praat GUI and API commands, not fatal
+        tilt = np.around(
+            tester.get_spectral_tilt_mean(), decimals=0
+        )  # crude rounding factor due to problem with disparity between Praat GUI and API commands, not fatal
 
         expected_vals = np.around(
             np.array(
@@ -734,6 +736,45 @@ class FeatureExtractionTests(unittest.TestCase):
                     208.4670319345922,
                     257.0344597011082,
                     303.6996822139063,
+                ]
+            ),
+            decimals=0,  # crude rounding factor due to problem with disparity between Praat GUI and API commands, not fatal
+        )
+
+        self.assertTrue(np.array_equal(tilt, expected_vals, equal_nan=True))
+
+    def test_spectral_tilt_range(self):
+        """
+        Does the extraction of spectral tilt range work properly?
+        """
+
+        wav_file = "tests/test_material/feature_extraction/test.wav"
+
+        nuclei_df = DataFrame(
+            [
+                (11.41, 11.52, "I"),
+                (11.63, 11.72, "e:"),
+                (11.79, 11.85, "I"),
+                (11.96, 12.03, "U"),
+                (12.16, 12.24, "o:"),
+            ],
+            columns=["start_est", "end", "phone"],
+        )
+
+        tester = extract_features.Extractor(wav_file, nuclei=nuclei_df, gender="m")
+
+        tilt = np.around(
+            tester.get_spectral_tilt_range(), decimals=0
+        )  # crude rounding factor due to problem with disparity between Praat GUI and API commands, not fatal
+
+        expected_vals = np.around(
+            np.array(
+                [
+                    93.21161373221497,
+                    92.01501874721757,
+                    71.79593221552784,
+                    141.77098228232867,
+                    88.78280215464144,
                 ]
             ),
             decimals=0,  # crude rounding factor due to problem with disparity between Praat GUI and API commands, not fatal
