@@ -281,10 +281,16 @@ class Extractor(object):
         def calc_tilt(
             snd_obj, start, end
         ):  # ancillary function to calculcate spectral tilt as mean C1 value over syllable nucleus
-            nucl_obj = snd_obj.extract_part(from_time=start, to_time=end)
-            nucl_mfcc = nucl_obj.to_mfcc(number_of_coefficients=1)
-            nucl_tilt = np.mean(nucl_mfcc.to_array()[1])
 
+            if (end - start) > 0.03:
+                nucl_obj = snd_obj.extract_part(from_time=start, to_time=end)
+                nucl_mfcc = nucl_obj.to_mfcc(
+                    number_of_coefficients=1, window_length=0.01
+                )
+                nucl_tilt = np.mean(nucl_mfcc.to_array()[1])
+
+            else:
+                nucl_tilt = np.nan
             return nucl_tilt
 
         timestamps_filtered["tilt_mean"] = [
@@ -311,9 +317,16 @@ class Extractor(object):
         def calc_tilt_range(
             snd_obj, start, end
         ):  # ancillary function to calculcate spectral tilt as mean C1 value over syllable nucleus
-            nucl_obj = snd_obj.extract_part(from_time=start, to_time=end)
-            nucl_mfcc = nucl_obj.to_mfcc(number_of_coefficients=1).to_array()[1]
-            nucl_tilt = max(nucl_mfcc) - min(nucl_mfcc)
+
+            if (end - start) > 0.03:
+                nucl_obj = snd_obj.extract_part(from_time=start, to_time=end)
+                nucl_mfcc = nucl_obj.to_mfcc(
+                    number_of_coefficients=1, window_length=0.01
+                ).to_array()[1]
+                nucl_tilt = max(nucl_mfcc) - min(nucl_mfcc)
+
+            else:
+                nucl_tilt = np.nan
 
             return nucl_tilt
 

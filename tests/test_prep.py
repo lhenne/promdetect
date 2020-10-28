@@ -731,11 +731,11 @@ class FeatureExtractionTests(unittest.TestCase):
         expected_vals = np.around(
             np.array(
                 [
-                    140.91704919270097,
-                    245.1008624475218,
-                    208.4670319345922,
-                    257.0344597011082,
-                    303.6996822139063,
+                    142.71001735123184,
+                    238.82379641896938,
+                    209.10863223758525,
+                    247.9976699000063,
+                    299.64676965508664,
                 ]
             ),
             decimals=0,  # crude rounding factor due to problem with disparity between Praat GUI and API commands, not fatal
@@ -770,11 +770,11 @@ class FeatureExtractionTests(unittest.TestCase):
         expected_vals = np.around(
             np.array(
                 [
-                    93.21161373221497,
-                    92.01501874721757,
-                    71.79593221552784,
-                    141.77098228232867,
-                    88.78280215464144,
+                    149.61228824324905,
+                    103.69618917064011,
+                    76.79120165132159,
+                    195.89299491267772,
+                    125.97013425133713,
                 ]
             ),
             decimals=0,  # crude rounding factor due to problem with disparity between Praat GUI and API commands, not fatal
