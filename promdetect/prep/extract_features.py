@@ -59,6 +59,34 @@ class Extractor(object):
             pitch_floor=self.__pitch_range[0], pitch_ceiling=self.__pitch_range[1]
         )
 
+    def extract_parts(self):
+        """
+        Extract separate Praat sound objects for each of the nuclei in `self.nuclei`.
+        Add them to DataFrame.
+        """
+
+        self.nuclei["part_obj"] = np.array(
+            [
+                self.snd_obj.extract_part(from_time=row.start_est, to_time=row.end)
+                for row in self.nuclei.itertuples()
+            ]
+        )
+
+    def calc_pitch_parts(self):
+        """
+        Create pitch objects for each of the nucleus sound objects extracted by `extract_parts()`
+        """
+
+        self.nuclei["part_pitch"] = np.array(
+            [
+                row.part_obj.to_pitch_cc(
+                    pitch_floor=self.__pitch_range[0],
+                    pitch_ceiling=self.__pitch_range[1],
+                )
+                for row in self.nuclei.itertuples()
+            ]
+        )
+
     def get_rms(self):
         """
         This function extracts the RMS value for syllable nuclei.
