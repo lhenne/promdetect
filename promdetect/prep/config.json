@@ -5,6 +5,7 @@
     "features": {
         "rms": true,
         "duration_normed": true,
+        "pitch_slope": true,
         "intensity_nuclei": true,
         "intensity_ip": true,
         "f0_max_nuclei": true,

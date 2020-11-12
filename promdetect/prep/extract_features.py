@@ -65,12 +65,10 @@ class Extractor(object):
         Add them to DataFrame.
         """
 
-        self.nuclei["part_obj"] = np.array(
-            [
-                self.snd_obj.extract_part(from_time=row.start_est, to_time=row.end)
-                for row in self.nuclei.itertuples()
-            ]
-        )
+        self.nuclei["part_obj"] = [
+            self.snd_obj.extract_part(from_time=row.start_est, to_time=row.end)
+            for row in self.nuclei.itertuples()
+        ]
 
     def calc_pitch_parts(self):
         """
@@ -131,6 +129,35 @@ class Extractor(object):
             normed_durs = np.empty([])
 
         return normed_durs
+
+    def get_pitch_slope(self):
+        """
+        This function calculates the pitch slope, without octave jumps, across each syllable nucleus
+        """
+
+        check_input_df(self.nuclei, ["start_est", "end"])
+
+        if "part_obj" not in self.nuclei.columns:
+            self.extract_parts()
+            self.calc_pitch_parts()
+        else:
+            if "part_pitch" not in self.nuclei.columns:
+                self.calc_pitch_parts()
+            else:
+                pass
+
+        nuclei_filtered = self.nuclei[
+            (self.nuclei["start_est"].notna()) & (self.nuclei["end"].notna())
+        ].copy()
+
+        nuclei_filtered["pitch_slope"] = np.array(
+            [
+                part_pitch.get_slope_without_octave_jumps()
+                for part_pitch in self.nuclei["part_pitch"]
+            ]
+        )
+
+        return nuclei_filtered["pitch_slope"]
 
     def get_intensity_nuclei(self):
         """

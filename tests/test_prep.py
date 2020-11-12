@@ -417,6 +417,46 @@ class FeatureExtractionTests(unittest.TestCase):
 
         self.assertTrue(np.array_equal(rms, expected_vals, equal_nan=True))
 
+    def test_intensity_min_extraction(self):
+        pass
+
+    def test_local_pitch_slope(self):
+        """
+        Is the absolute slope (without octave jumps) calculated correctly?
+        """
+
+        wav_file = "tests/test_material/feature_extraction/test.wav"
+
+        nuclei_df = DataFrame(
+            [
+                (11.41, 11.52, "I"),
+                (11.63, 11.72, "e:"),
+                (11.79, 11.85, "I"),
+                (11.96, 12.03, "U"),
+                (12.16, 12.24, "o:"),
+            ],
+            columns=["start_est", "end", "phone"],
+        )
+
+        tester = extract_features.Extractor(wav_file, nuclei=nuclei_df, gender="m")
+
+        pitch_slope = np.around(tester.get_pitch_slope(), decimals=4)
+
+        expected_vals = np.around(
+            np.array(
+                [
+                    26.819895462113966,
+                    10.194947721704583,
+                    15.767233863040769,
+                    21.886583599912406,
+                    32.763328999228335,
+                ]
+            ),
+            decimals=4,
+        )
+
+        self.assertTrue(np.array_equal(pitch_slope, expected_vals, equal_nan=True))
+
     def test_intensity_extraction_nuclei_max(self):
         """
         Does the intensity extraction (dB) using Praat work properly?
