@@ -418,7 +418,42 @@ class FeatureExtractionTests(unittest.TestCase):
         self.assertTrue(np.array_equal(rms, expected_vals, equal_nan=True))
 
     def test_intensity_min_extraction(self):
-        pass
+        """
+        Is the mininum intensity extracted correctly?
+        """
+
+        wav_file = "tests/test_material/feature_extraction/test.wav"
+
+        nuclei_df = DataFrame(
+            [
+                (11.41, 11.52, "I"),
+                (11.63, 11.72, "e:"),
+                (11.79, 11.85, "I"),
+                (11.96, 12.03, "U"),
+                (12.16, 12.24, "o:"),
+            ],
+            columns=["start_est", "end", "phone"],
+        )
+
+        tester = extract_features.Extractor(wav_file, nuclei=nuclei_df, gender="m")
+        tester.calc_intensity()
+
+        pitch_slope = np.around(tester.get_min_intensity_nuclei(), decimals=4)
+
+        expected_vals = np.around(
+            np.array(
+                [
+                    72.52231907753077,
+                    78.54116284340166,
+                    75.2261318921721,
+                    70.07862900229256,
+                    76.88232010504962,
+                ]
+            ),
+            decimals=4,
+        )
+
+        self.assertTrue(np.array_equal(pitch_slope, expected_vals, equal_nan=True))
 
     def test_local_pitch_slope(self):
         """

@@ -159,6 +159,26 @@ class Extractor(object):
 
         return nuclei_filtered["pitch_slope"]
 
+    def get_min_intensity_nuclei(self):
+        """
+        This function extracts the minimum intensity value in each syllable nucleus
+        """
+
+        check_input_df(self.nuclei, ["start_est", "end"])
+
+        nuclei_filtered = self.nuclei[
+            (self.nuclei["start_est"].notna()) & (self.nuclei["end"].notna())
+        ].copy()
+
+        nuclei_filtered["intens_min"] = np.array(
+            [
+                praat.call(self.int_obj, "Get minimum", row.start_est, row.end, "None")
+                for row in nuclei_filtered.itertuples()
+            ]
+        )
+
+        return nuclei_filtered["intens_min"]
+
     def get_intensity_nuclei(self):
         """
         This function extracts the maximum intensity value in each syllable nucleus
