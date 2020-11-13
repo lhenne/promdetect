@@ -455,6 +455,44 @@ class FeatureExtractionTests(unittest.TestCase):
 
         self.assertTrue(np.array_equal(pitch_slope, expected_vals, equal_nan=True))
 
+    def test_intensity_std_extraction(self):
+        """
+        Is the standard deviation for intensity extracted correctly?
+        """
+
+        wav_file = "tests/test_material/feature_extraction/test.wav"
+
+        nuclei_df = DataFrame(
+            [
+                (11.41, 11.52, "I"),
+                (11.63, 11.72, "e:"),
+                (11.79, 11.85, "I"),
+                (11.96, 12.03, "U"),
+                (12.16, 12.24, "o:"),
+            ],
+            columns=["start_est", "end", "phone"],
+        )
+
+        tester = extract_features.Extractor(wav_file, nuclei=nuclei_df, gender="m")
+        tester.calc_intensity()
+
+        pitch_slope = np.around(tester.get_intensity_std_nuclei(), decimals=4)
+
+        expected_vals = np.around(
+            np.array(
+                [
+                    3.369907965314268,
+                    1.1402104298852436,
+                    1.5638238156409505,
+                    3.419440119923512,
+                    0.5701671691859589,
+                ]
+            ),
+            decimals=4,
+        )
+
+        self.assertTrue(np.array_equal(pitch_slope, expected_vals, equal_nan=True))
+
     def test_local_pitch_slope(self):
         """
         Is the absolute slope (without octave jumps) calculated correctly?

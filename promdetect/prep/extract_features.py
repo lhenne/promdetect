@@ -199,6 +199,28 @@ class Extractor(object):
 
         return nuclei_filtered["intens_max"]
 
+    def get_intensity_std_nuclei(self):
+        """
+        This function extracts the standard deviation for intensity values across each syllable nucleus
+        """
+
+        check_input_df(self.nuclei, ["start_est", "end"])
+
+        nuclei_filtered = self.nuclei[
+            (self.nuclei["start_est"].notna()) & (self.nuclei["end"].notna())
+        ].copy()
+
+        nuclei_filtered["intens_std"] = np.array(
+            [
+                praat.call(
+                    self.int_obj, "Get standard deviation", row.start_est, row.end
+                )
+                for row in nuclei_filtered.itertuples()
+            ]
+        )
+
+        return nuclei_filtered["intens_std"]
+
     def get_intensity_ip(self):
         """
         This function extracts the mean intensity value for each intonation phrase
