@@ -370,6 +370,42 @@ class Extractor(object):
 
         return f0_std
 
+    def get_f0_min_pos(self):
+        """
+        This function extracts the relative position of the pitch minimum within a syllable nucleus
+        """
+
+        check_input_df(self.nuclei, ["start_est", "end"])
+
+        nuclei_filtered = self.nuclei[
+            (self.nuclei["start_est"].notna()) & (self.nuclei["end"].notna())
+        ].copy()
+
+        nuclei_filtered["f0_min_pos"] = [
+            self.relative_position("minimum", "pitch", row.start_est, row.end)
+            for row in nuclei_filtered.itertuples()
+        ]
+
+        return nuclei_filtered["f0_min_pos"]
+
+    def get_f0_max_pos(self):
+        """
+        This function extracts the relative position of the pitch maximum within a syllable nucleus
+        """
+
+        check_input_df(self.nuclei, ["start_est", "end"])
+
+        nuclei_filtered = self.nuclei[
+            (self.nuclei["start_est"].notna()) & (self.nuclei["end"].notna())
+        ].copy()
+
+        nuclei_filtered["f0_max_pos"] = [
+            self.relative_position("maximum", "pitch", row.start_est, row.end)
+            for row in nuclei_filtered.itertuples()
+        ]
+
+        return nuclei_filtered["f0_max_pos"]
+
     def get_excursion(self, level=""):
         """
         This function extracts the pitch excursion with normalization on either the "word" level or the intonation phrase ("ip") level

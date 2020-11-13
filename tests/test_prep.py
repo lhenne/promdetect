@@ -826,6 +826,82 @@ class FeatureExtractionTests(unittest.TestCase):
 
         self.assertTrue(np.array_equal(f0s, expected_vals, equal_nan=True))
 
+    def test_min_pitch_pos_nuclei(self):
+        """
+        Does the extraction of the relative position of the pitch minimum within syllable nuclei work properly?
+        """
+
+        wav_file = "tests/test_material/feature_extraction/test.wav"
+
+        nuclei_df = DataFrame(
+            [
+                (11.41, 11.52, "I"),
+                (11.63, 11.72, "e:"),
+                (11.79, 11.85, "I"),
+                (11.96, 12.03, "U"),
+                (12.16, 12.24, "o:"),
+            ],
+            columns=["start_est", "end", "phone"],
+        )
+
+        tester = extract_features.Extractor(wav_file, nuclei=nuclei_df, gender="m")
+        tester.calc_pitch()
+
+        pos = np.around(tester.get_f0_min_pos(), decimals=4)
+
+        expected_vals = np.around(
+            np.array(
+                [
+                    0.6079545454545124,
+                    0.020833333333274945,
+                    0.031249999999941713,
+                    0.9553571428571064,
+                    0.27343749999995093,
+                ]
+            ),
+            decimals=4,
+        )
+
+        self.assertTrue(np.array_equal(pos, expected_vals, equal_nan=True))
+
+    def test_max_pitch_pos_nuclei(self):
+        """
+        Does the extraction of the relative position of the pitch minimum within syllable nuclei work properly?
+        """
+
+        wav_file = "tests/test_material/feature_extraction/test.wav"
+
+        nuclei_df = DataFrame(
+            [
+                (11.41, 11.52, "I"),
+                (11.63, 11.72, "e:"),
+                (11.79, 11.85, "I"),
+                (11.96, 12.03, "U"),
+                (12.16, 12.24, "o:"),
+            ],
+            columns=["start_est", "end", "phone"],
+        )
+
+        tester = extract_features.Extractor(wav_file, nuclei=nuclei_df, gender="m")
+        tester.calc_pitch()
+
+        pos = np.around(tester.get_f0_max_pos(), decimals=4)
+
+        expected_vals = np.around(
+            np.array(
+                [
+                    0.3352272727272441,
+                    0.35416666666662144,
+                    0.7812499999999343,
+                    0.45535714285709367,
+                    0.9609374999999467,
+                ]
+            ),
+            decimals=4,
+        )
+
+        self.assertTrue(np.array_equal(pos, expected_vals, equal_nan=True))
+
     def test_pitch_excursion_ip(self):
         """
         Does the extraction of pitch excursion across the intonation phrase work correctly?
