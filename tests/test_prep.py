@@ -455,6 +455,82 @@ class FeatureExtractionTests(unittest.TestCase):
 
         self.assertTrue(np.array_equal(pitch_slope, expected_vals, equal_nan=True))
 
+    def test_intensity_min_pos_extraction(self):
+        """
+        Is the relative position of the intensity minimum in the syllable nucleus extracted correctly?
+        """
+
+        wav_file = "tests/test_material/feature_extraction/test.wav"
+
+        nuclei_df = DataFrame(
+            [
+                (11.41, 11.52, "I"),
+                (11.63, 11.72, "e:"),
+                (11.79, 11.85, "I"),
+                (11.96, 12.03, "U"),
+                (12.16, 12.24, "o:"),
+            ],
+            columns=["start_est", "end", "phone"],
+        )
+
+        tester = extract_features.Extractor(wav_file, nuclei=nuclei_df, gender="m")
+        tester.calc_intensity()
+
+        pitch_slope = np.around(tester.get_min_intensity_pos(), decimals=4)
+
+        expected_vals = np.around(
+            np.array(
+                [
+                    0.14431818181812883,
+                    0.043055555555504624,
+                    0.0645833333332859,
+                    0.1410714285713439,
+                    0.42343749999993424,
+                ]
+            ),
+            decimals=4,
+        )
+
+        self.assertTrue(np.array_equal(pitch_slope, expected_vals, equal_nan=True))
+
+    def test_intensity_max_pos_extraction(self):
+        """
+        Is the relative position of the intensity maximum in the syllable nucleus extracted correctly?
+        """
+
+        wav_file = "tests/test_material/feature_extraction/test.wav"
+
+        nuclei_df = DataFrame(
+            [
+                (11.41, 11.52, "I"),
+                (11.63, 11.72, "e:"),
+                (11.79, 11.85, "I"),
+                (11.96, 12.03, "U"),
+                (12.16, 12.24, "o:"),
+            ],
+            columns=["start_est", "end", "phone"],
+        )
+
+        tester = extract_features.Extractor(wav_file, nuclei=nuclei_df, gender="m")
+        tester.calc_intensity()
+
+        pitch_slope = np.around(tester.get_max_intensity_pos(), decimals=4)
+
+        expected_vals = np.around(
+            np.array(
+                [
+                    0.8715909090908767,
+                    0.39861111111106107,
+                    0.5979166666666152,
+                    0.5982142857142112,
+                    0.023437499999934254,
+                ]
+            ),
+            decimals=4,
+        )
+
+        self.assertTrue(np.array_equal(pitch_slope, expected_vals, equal_nan=True))
+
     def test_intensity_std_extraction(self):
         """
         Is the standard deviation for intensity extracted correctly?

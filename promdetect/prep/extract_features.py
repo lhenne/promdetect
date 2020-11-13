@@ -221,6 +221,46 @@ class Extractor(object):
 
         return nuclei_filtered["intens_std"]
 
+    def get_min_intensity_pos(self):
+        """
+        This function extracts the relative position of the intensity minimum within the syllable nucleus
+        """
+
+        check_input_df(self.nuclei, ["start_est", "end"])
+
+        nuclei_filtered = self.nuclei[
+            (self.nuclei["start_est"].notna()) & (self.nuclei["end"].notna())
+        ].copy()
+
+        nuclei_filtered["intens_min_pos"] = np.array(
+            [
+                self.relative_position("minimum", "intensity", row.start_est, row.end)
+                for row in nuclei_filtered.itertuples()
+            ]
+        )
+
+        return nuclei_filtered["intens_min_pos"]
+
+    def get_max_intensity_pos(self):
+        """
+        This function extracts the relative position of the intensity maximum within the syllable nucleus
+        """
+
+        check_input_df(self.nuclei, ["start_est", "end"])
+
+        nuclei_filtered = self.nuclei[
+            (self.nuclei["start_est"].notna()) & (self.nuclei["end"].notna())
+        ].copy()
+
+        nuclei_filtered["intens_max_pos"] = np.array(
+            [
+                self.relative_position("maximum", "intensity", row.start_est, row.end)
+                for row in nuclei_filtered.itertuples()
+            ]
+        )
+
+        return nuclei_filtered["intens_max_pos"]
+
     def get_intensity_ip(self):
         """
         This function extracts the mean intensity value for each intonation phrase
@@ -463,3 +503,30 @@ class Extractor(object):
         tilt_range = timestamps_filtered["tilt_range"]
 
         return tilt_range
+
+    # ANCILLARY FUNCTIONS
+    def relative_position(self, extremum, type, start, end):
+        """
+        Calculates the relative position of either a maximum or minimum value within a timespan delimited by start and end timestamps
+        """
+
+        base = extremum_at = None
+
+        if type == "pitch":
+            base = self.pitch_obj
+        elif type == "intensity":
+            base = self.int_obj
+
+        if type == "pitch":
+            extremum_at = praat.call(
+                base, f"Get time of {extremum}", start, end, "Hertz", "None"
+            )
+        elif type == "intensity":
+            extremum_at = praat.call(
+                base, f"Get time of {extremum}", start, end, "None"
+            )
+
+        time_passed = extremum_at - start
+        relative_pos = time_passed / (end - start)
+
+        return relative_pos
