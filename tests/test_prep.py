@@ -712,6 +712,44 @@ class FeatureExtractionTests(unittest.TestCase):
 
         self.assertTrue(np.array_equal(f0s, expected_vals, equal_nan=True))
 
+    def test_f0_extraction_nuclei_std(self):
+        """
+        Does the F0 standard deviation extraction for syllable nuclei work properly?
+        """
+
+        wav_file = "tests/test_material/feature_extraction/test.wav"
+
+        nuclei_df = DataFrame(
+            [
+                (11.41, 11.52, "I"),
+                (11.63, 11.72, "e:"),
+                (11.79, 11.85, "I"),
+                (11.96, 12.03, "U"),
+                (12.16, 12.24, "o:"),
+            ],
+            columns=["start_est", "end", "phone"],
+        )
+
+        tester = extract_features.Extractor(wav_file, nuclei=nuclei_df, gender="m")
+        tester.calc_pitch()
+
+        f0s = np.around(tester.get_f0_std_nuclei(), decimals=4)
+
+        expected_vals = np.around(
+            np.array(
+                [
+                    2.280839592346914,
+                    2.202496205316962,
+                    2.411086034540446,
+                    4.471311329355762,
+                    5.209220274575025,
+                ]
+            ),
+            decimals=4,
+        )
+
+        self.assertTrue(np.array_equal(f0s, expected_vals, equal_nan=True))
+
     def test_pitch_excursion_ip(self):
         """
         Does the extraction of pitch excursion across the intonation phrase work correctly?

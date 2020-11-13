@@ -13,6 +13,7 @@
         "f0_max_nuclei": true,
         "f0_min_nuclei": true,
         "f0_range_nuclei": true,
+        "f0_std_nuclei": true,
         "excursion": true,
         "spectral_tilt_mean": true,
         "spectral_tilt_range": true
