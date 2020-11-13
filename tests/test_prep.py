@@ -438,7 +438,7 @@ class FeatureExtractionTests(unittest.TestCase):
         tester = extract_features.Extractor(wav_file, nuclei=nuclei_df, gender="m")
         tester.calc_intensity()
 
-        pitch_slope = np.around(tester.get_min_intensity_nuclei(), decimals=4)
+        intensities = np.around(tester.get_min_intensity_nuclei(), decimals=4)
 
         expected_vals = np.around(
             np.array(
@@ -453,7 +453,7 @@ class FeatureExtractionTests(unittest.TestCase):
             decimals=4,
         )
 
-        self.assertTrue(np.array_equal(pitch_slope, expected_vals, equal_nan=True))
+        self.assertTrue(np.array_equal(intensities, expected_vals, equal_nan=True))
 
     def test_intensity_min_pos_extraction(self):
         """
@@ -476,7 +476,7 @@ class FeatureExtractionTests(unittest.TestCase):
         tester = extract_features.Extractor(wav_file, nuclei=nuclei_df, gender="m")
         tester.calc_intensity()
 
-        pitch_slope = np.around(tester.get_min_intensity_pos(), decimals=4)
+        pos = np.around(tester.get_min_intensity_pos(), decimals=4)
 
         expected_vals = np.around(
             np.array(
@@ -491,7 +491,7 @@ class FeatureExtractionTests(unittest.TestCase):
             decimals=4,
         )
 
-        self.assertTrue(np.array_equal(pitch_slope, expected_vals, equal_nan=True))
+        self.assertTrue(np.array_equal(pos, expected_vals, equal_nan=True))
 
     def test_intensity_max_pos_extraction(self):
         """
@@ -514,7 +514,7 @@ class FeatureExtractionTests(unittest.TestCase):
         tester = extract_features.Extractor(wav_file, nuclei=nuclei_df, gender="m")
         tester.calc_intensity()
 
-        pitch_slope = np.around(tester.get_max_intensity_pos(), decimals=4)
+        pos = np.around(tester.get_max_intensity_pos(), decimals=4)
 
         expected_vals = np.around(
             np.array(
@@ -529,7 +529,7 @@ class FeatureExtractionTests(unittest.TestCase):
             decimals=4,
         )
 
-        self.assertTrue(np.array_equal(pitch_slope, expected_vals, equal_nan=True))
+        self.assertTrue(np.array_equal(pos, expected_vals, equal_nan=True))
 
     def test_intensity_std_extraction(self):
         """
@@ -552,7 +552,7 @@ class FeatureExtractionTests(unittest.TestCase):
         tester = extract_features.Extractor(wav_file, nuclei=nuclei_df, gender="m")
         tester.calc_intensity()
 
-        pitch_slope = np.around(tester.get_intensity_std_nuclei(), decimals=4)
+        stds = np.around(tester.get_intensity_std_nuclei(), decimals=4)
 
         expected_vals = np.around(
             np.array(
@@ -567,7 +567,7 @@ class FeatureExtractionTests(unittest.TestCase):
             decimals=4,
         )
 
-        self.assertTrue(np.array_equal(pitch_slope, expected_vals, equal_nan=True))
+        self.assertTrue(np.array_equal(stds, expected_vals, equal_nan=True))
 
     def test_local_pitch_slope(self):
         """
