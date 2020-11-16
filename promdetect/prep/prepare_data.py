@@ -74,13 +74,28 @@ class FeatureSet:
                 features_df[f"excursion_{level}"] = extractor.get_excursion(level)
 
         else:
-            if func_to_run in ["intensity_nuclei", "intensity_ip"]:
-                if not hasattr(extractor, "intensity_obj"):
+            if func_to_run in [
+                "intensity_nuclei",
+                "min_intensity_nuclei",
+                "intensity_ip",
+                "intensity_std_nuclei",
+                "intensity_min_pos",
+                "intensity_max_pos",
+            ]:
+                if not hasattr(extractor, "int_obj"):
                     extractor.calc_intensity()
 
                 features_df[func_to_run] = eval(f"extractor.get_{func_to_run}()")
 
-            elif func_to_run in ["f0_max_nuclei", "f0_min_nuclei"]:
+            elif func_to_run in [
+                "f0_max_nuclei",
+                "f0_min_nuclei",
+                "pitch_slope",
+                "f0_range_nuclei",
+                "f0_std_nuclei",
+                "f0_min_pos",
+                "f0_max_pos",
+            ]:
                 if not hasattr(extractor, "pitch_obj"):
                     extractor.calc_pitch()
 
@@ -105,9 +120,18 @@ if __name__ == "__main__":
 
     out_dir = "/home/lukas/Dokumente/Uni/ma_thesis/promdetect/data/features/"
 
+    existing = [Path(file).stem for file in glob(f"{out_dir}*")]
+    idx = 1
+    recordings = [recording for recording in recordings if recording not in existing]
+
     for recording in recordings:
         feature_set = FeatureSet(CONFIG, recording)
         feature_data = feature_set.run_config()
 
+        limit = len(recordings)
+
         with open(out_dir + recording, "w+") as out_file:
             feature_data.to_csv(out_file)
+
+        print(f"Processed {idx} of {limit} recordings.")
+        idx += 1

@@ -74,16 +74,22 @@ class Extractor(object):
         """
         Create pitch objects for each of the nucleus sound objects extracted by `extract_parts()`
         """
-
-        self.nuclei["part_pitch"] = np.array(
+        
+        nuclei_filtered = self.nuclei[
+            self.nuclei["duration"] >= 0.06
+        ].copy()
+         
+        nuclei_filtered["part_pitch"] = np.array(
             [
                 row.part_obj.to_pitch_cc(
                     pitch_floor=self.__pitch_range[0],
                     pitch_ceiling=self.__pitch_range[1],
                 )
-                for row in self.nuclei.itertuples()
+                for row in nuclei_filtered.itertuples()
             ]
         )
+        
+        self.nuclei["part_pitch"] = nuclei_filtered["part_pitch"]
 
     def get_rms(self):
         """
@@ -147,13 +153,13 @@ class Extractor(object):
                 pass
 
         nuclei_filtered = self.nuclei[
-            (self.nuclei["start_est"].notna()) & (self.nuclei["end"].notna())
+            self.nuclei["part_pitch"].notna()
         ].copy()
 
         nuclei_filtered["pitch_slope"] = np.array(
             [
                 part_pitch.get_slope_without_octave_jumps()
-                for part_pitch in self.nuclei["part_pitch"]
+                for part_pitch in nuclei_filtered["part_pitch"]
             ]
         )
 
