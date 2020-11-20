@@ -32,8 +32,16 @@ class Segmenter:
             df["end_frame"] = df["end"] * 48_000
             df["duration_frames"] = df["duration"] * 48_000
 
-    def save_output(self, file):
-        pass
+    def save_output(
+        self,
+        directory="/home/lukas/Dokumente/Uni/ma_thesis/promdetect/data/dirndl/word_based",
+    ):
+        for recording, content in self.annotations.items():
+            outfile = f"{directory}/{recording}_{self.level}"
+
+            content.to_csv(outfile + ".csv", index=False)
+            with open(outfile + ".npy", "wb") as dest:
+                np.save(dest, content.to_numpy())
 
     # ANCILLARY FUNCTIONS
     def content_to_df(self, content):
