@@ -51,7 +51,7 @@ class WordSegmentationTests(unittest.TestCase):
 
         ex_df = tester.annotations["dlf-nachrichten-200703250000"]
 
-        ex_vals = ex_df.loc[42]
+        ex_vals = ex_df.loc[145]
 
         self.assertTrue(ex_vals["start_frame"] == (ex_vals["start"] * 48_000))
         self.assertTrue(ex_vals["end_frame"] == (ex_vals["end"] * 48_000))

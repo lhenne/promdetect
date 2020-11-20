@@ -22,9 +22,14 @@ class Segmenter:
 
             content_as_df = self.content_to_df(content)
 
-            content_inf_bounds = self.calc_start_end(content_as_df, self.level)
-
-            self.annotations[recording] = content_inf_bounds
+            if self.level == "words":
+                content_inf_bounds = self.calc_start_end(content_as_df)
+                content_filt = self.filter_annots(content_inf_bounds)
+                self.annotations[recording] = content_filt
+            else:
+                content_filt = self.filter_annots(content_as_df)
+                content_inf_bounds = self.calc_start_end(content_filt)
+                self.annotations[recording] = content_inf_bounds
 
     def add_frame_info(self):
         for df in self.annotations.values():
@@ -44,6 +49,33 @@ class Segmenter:
                 np.save(dest, content.to_numpy())
 
     # ANCILLARY FUNCTIONS
+    def filter_annots(self, content):
+        if self.level == "words":
+            TO_SORT_OUT = [
+                "[@]",
+                "[t]",
+                "[n]",
+                "[f]",
+                "[h]",
+                "<P>",
+            ]
+            TO_NORMALIZE = None
+            NORMALIZER = None
+
+        else:
+            TO_SORT_OUT = ["-"]
+            TO_NORMALIZE = ["L%", "H%"]
+            NORMALIZER = "%"
+
+        content_filt = content.copy().loc[~content["label"].isin(TO_SORT_OUT)]
+
+        if TO_NORMALIZE and NORMALIZER:
+            content_filt["label"] = content_filt["label"].replace(
+                TO_NORMALIZE, NORMALIZER
+            )
+
+        return content_filt.reset_index()
+
     def content_to_df(self, content):
         content_as_df = pd.read_csv(
             content,
@@ -56,7 +88,7 @@ class Segmenter:
         )
         return content_as_df
 
-    def calc_start_end(self, content_as_df, level):
+    def calc_start_end(self, content_as_df):
         content_as_df["start"] = np.nan
         content_as_df["duration"] = np.nan
         num_rows = len(content_as_df.index)
@@ -69,7 +101,7 @@ class Segmenter:
 
                 duration = end_time - start_time
 
-                if level == "words":
+                if self.level == "words":
                     if duration > 3.0:
                         content_as_df.at[i, "start"] = end_time - 3.0
                         content_as_df.at[i, "duration"] = 3.0
@@ -78,7 +110,7 @@ class Segmenter:
                         content_as_df.at[i, "start"] = start_time
                         content_as_df.at[i, "duration"] = end_time - start_time
 
-                elif level == "tones":
+                elif self.level == "tones":
                     content_as_df.at[i, "start"] = start_time
                     content_as_df.at[i, "duration"] = end_time - start_time
             else:
