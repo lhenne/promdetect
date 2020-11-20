@@ -50,7 +50,6 @@ class Segmenter:
                     elif level == "tones":
                         content_as_df.at[i, "start"] = start_time
                         content_as_df.at[i, "duration"] = end_time - start_time
-
                 else:
                     continue
 
@@ -61,6 +60,12 @@ class Segmenter:
             raw_content = read_file(file)
             content = StringIO(clean_text(raw_content, self.level))
             self.annotations[recording] = content_to_df(content, self.level)
+
+    def add_frame_info(self):
+        for df in self.annotations.values():
+            df["start_frame"] = df["start"] * 48_000
+            df["end_frame"] = df["end"] * 48_000
+            df["duration_frames"] = df["duration"] * 48_000
 
     def save_output(self, file):
         pass
