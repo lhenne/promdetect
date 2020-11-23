@@ -156,12 +156,10 @@ class IPSegmentationTests(unittest.TestCase):
         )
 
 
-class FeatureExtractionTests(unittest.TestCase):
+class DurationExtractionTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.wav_file = (
-            cls.wav_file
-        ) = "/home/lukas/Dokumente/Uni/ma_thesis/quelldaten/DIRNDL-prosody/dlf-nachrichten-200703250000.wav"
+        cls.wav_file = "/home/lukas/Dokumente/Uni/ma_thesis/quelldaten/DIRNDL-prosody/dlf-nachrichten-200703250000.wav"
         cls.words = "/home/lukas/Dokumente/Uni/ma_thesis/promdetect/data/dirndl/word_based/dlf-nachrichten-200703250000_words.csv"
         cls.tones = "/home/lukas/Dokumente/Uni/ma_thesis/promdetect/data/dirndl/word_based/dlf-nachrichten-200703250000_tones.csv"
         cls.tester = extract_word_features.WordLevelExtractor(
@@ -169,12 +167,11 @@ class FeatureExtractionTests(unittest.TestCase):
         )
 
         cls.tester.get_duration_features()
-        cls.tester.get_intensity_features()
 
     def test_duration_extraction(cls):
         expected_dur_vals = np.array([0.3799, 0.3199, 0.8299, 0.2799, 0.2599, 0.5199])
         true_dur_vals = np.around(
-            cls.tester.features.iloc[12:18]["dur"].to_numpy(dtype=float), decimals=4
+            cls.tester.features.iloc[25:31]["dur"].to_numpy(dtype=float), decimals=4
         )
 
         cls.assertTrue(np.array_equal(expected_dur_vals, true_dur_vals))
@@ -184,11 +181,24 @@ class FeatureExtractionTests(unittest.TestCase):
             [0.880281, 0.741253, 1.922994, 0.648567, 0.602224, 1.204681]
         )
         true_dur_normed_vals = np.around(
-            cls.tester.features.iloc[12:18]["dur_normed"].to_numpy(dtype=float),
+            cls.tester.features.iloc[25:31]["dur_normed"].to_numpy(dtype=float),
             decimals=6,
         )
 
         cls.assertTrue(np.array_equal(expected_dur_normed_vals, true_dur_normed_vals))
+
+
+class IntensityExtractionTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.wav_file = "/home/lukas/Dokumente/Uni/ma_thesis/quelldaten/DIRNDL-prosody/dlf-nachrichten-200703250000.wav"
+        cls.words = "/home/lukas/Dokumente/Uni/ma_thesis/promdetect/data/dirndl/word_based/dlf-nachrichten-200703250000_words.csv"
+        cls.tones = "/home/lukas/Dokumente/Uni/ma_thesis/promdetect/data/dirndl/word_based/dlf-nachrichten-200703250000_tones.csv"
+        cls.tester = extract_word_features.WordLevelExtractor(
+            cls.wav_file, cls.words, cls.tones, "m"
+        )
+
+        cls.tester.get_intensity_features()
 
     def test_rms_extraction(cls):
         expected_rms_vals = np.around(
@@ -203,7 +213,7 @@ class FeatureExtractionTests(unittest.TestCase):
             decimals=6,
         )
         true_rms_vals = np.around(
-            cls.tester.features.iloc[12:18]["int_rms"].to_numpy(dtype=float), decimals=6
+            cls.tester.features.iloc[25:31]["int_rms"].to_numpy(dtype=float), decimals=6
         )
 
         cls.assertTrue(np.array_equal(expected_rms_vals, true_rms_vals))
@@ -221,7 +231,7 @@ class FeatureExtractionTests(unittest.TestCase):
             decimals=4,
         )
         true_min_int_vals = np.around(
-            cls.tester.features.iloc[12:18]["int_min"].to_numpy(dtype=float), decimals=4
+            cls.tester.features.iloc[25:31]["int_min"].to_numpy(dtype=float), decimals=4
         )
 
         cls.assertTrue(np.array_equal(expected_min_int_vals, true_min_int_vals))
@@ -239,7 +249,7 @@ class FeatureExtractionTests(unittest.TestCase):
             decimals=4,
         )
         true_max_int_vals = np.around(
-            cls.tester.features.iloc[12:18]["int_max"].to_numpy(dtype=float), decimals=4
+            cls.tester.features.iloc[25:31]["int_max"].to_numpy(dtype=float), decimals=4
         )
 
         cls.assertTrue(np.array_equal(expected_max_int_vals, true_max_int_vals))
@@ -257,7 +267,7 @@ class FeatureExtractionTests(unittest.TestCase):
             decimals=4,
         )
         true_mean_int_vals = np.around(
-            cls.tester.features.iloc[12:18]["int_mean"].to_numpy(dtype=float),
+            cls.tester.features.iloc[25:31]["int_mean"].to_numpy(dtype=float),
             decimals=4,
         )
 
@@ -276,7 +286,7 @@ class FeatureExtractionTests(unittest.TestCase):
             decimals=4,
         )
         true_int_std_vals = np.around(
-            cls.tester.features.iloc[12:18]["int_std"].to_numpy(dtype=float),
+            cls.tester.features.iloc[25:31]["int_std"].to_numpy(dtype=float),
             decimals=4,
         )
 
@@ -295,7 +305,7 @@ class FeatureExtractionTests(unittest.TestCase):
             decimals=4,
         )
         true_int_min_pos_vals = np.around(
-            cls.tester.features.iloc[12:18]["int_min_pos"].to_numpy(dtype=float),
+            cls.tester.features.iloc[25:31]["int_min_pos"].to_numpy(dtype=float),
             decimals=4,
         )
 
@@ -314,8 +324,21 @@ class FeatureExtractionTests(unittest.TestCase):
             decimals=4,
         )
         true_int_max_pos_vals = np.around(
-            cls.tester.features.iloc[12:18]["int_max_pos"].to_numpy(dtype=float),
+            cls.tester.features.iloc[25:31]["int_max_pos"].to_numpy(dtype=float),
             decimals=4,
         )
 
         cls.assertTrue(np.array_equal(expected_int_max_pos_vals, true_int_max_pos_vals))
+
+
+class PitchExtractionTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.wav_file = "/home/lukas/Dokumente/Uni/ma_thesis/quelldaten/DIRNDL-prosody/dlf-nachrichten-200703250000.wav"
+        cls.words = "/home/lukas/Dokumente/Uni/ma_thesis/promdetect/data/dirndl/word_based/dlf-nachrichten-200703250000_words.csv"
+        cls.tones = "/home/lukas/Dokumente/Uni/ma_thesis/promdetect/data/dirndl/word_based/dlf-nachrichten-200703250000_tones.csv"
+        cls.tester = extract_word_features.WordLevelExtractor(
+            cls.wav_file, cls.words, cls.tones, "m"
+        )
+
+        cls.tester.get_pitch_features()

@@ -85,59 +85,71 @@ class WordLevelExtractor:
 
         self.int_obj = self.snd_obj.to_intensity(minimum_pitch=self.__pitch_range[0])
 
-        self.features["int_rms"] = [
+        self.features_has_crit = self.features.copy().loc[
+            (self.features["start"].notna())
+            & (self.features["end"].notna())
+            & (self.features["label"] != "<P>")
+        ]
+
+        self.features_has_crit["int_rms"] = [
             praat.call(self.snd_obj, "Get root-mean-square", row.start, row.end)
-            for row in self.features.itertuples()
+            for row in self.features_has_crit.itertuples()
             if row.start == row.start and row.end == row.end and row.label != "<P>"
         ]
 
-        self.features["int_min"] = [
+        self.features_has_crit["int_min"] = [
             praat.call(self.int_obj, "Get minimum", row.start, row.end, "None")
-            for row in self.features.itertuples()
+            for row in self.features_has_crit.itertuples()
             if row.start == row.start and row.end == row.end and row.label != "<P>"
         ]
 
-        self.features["int_max"] = [
+        self.features_has_crit["int_max"] = [
             praat.call(self.int_obj, "Get maximum", row.start, row.end, "None")
-            for row in self.features.itertuples()
+            for row in self.features_has_crit.itertuples()
             if row.start == row.start and row.end == row.end and row.label != "<P>"
         ]
 
-        self.features["int_mean"] = [
+        self.features_has_crit["int_mean"] = [
             praat.call(self.int_obj, "Get mean", row.start, row.end, "energy")
-            for row in self.features.itertuples()
+            for row in self.features_has_crit.itertuples()
             if row.start == row.start and row.end == row.end and row.label != "<P>"
         ]
 
-        self.features["int_std"] = [
+        self.features_has_crit["int_std"] = [
             praat.call(self.int_obj, "Get standard deviation", row.start, row.end)
-            for row in self.features.itertuples()
+            for row in self.features_has_crit.itertuples()
             if row.start == row.start and row.end == row.end and row.label != "<P>"
         ]
 
-        self.features["int_min_pos"] = [
+        self.features_has_crit["int_min_pos"] = [
             (
                 praat.call(
                     self.int_obj, "Get time of minimum", row.start, row.end, "None"
                 )
                 - row.start
             )
-            / row.dur
-            for row in self.features.itertuples()
+            / (row.end - row.start)
+            for row in self.features_has_crit.itertuples()
             if row.start == row.start and row.end == row.end and row.label != "<P>"
         ]
 
-        self.features["int_max_pos"] = [
+        self.features_has_crit["int_max_pos"] = [
             (
                 praat.call(
                     self.int_obj, "Get time of maximum", row.start, row.end, "None"
                 )
                 - row.start
             )
-            / row.dur
-            for row in self.features.itertuples()
+            / (row.end - row.start)
+            for row in self.features_has_crit.itertuples()
             if row.start == row.start and row.end == row.end and row.label != "<P>"
         ]
+
+        self.features.loc[
+            (self.features["start"].notna())
+            & (self.features["end"].notna())
+            & (self.features["label"] != "<P>")
+        ] = self.features_has_crit
 
     def get_pitch_features(self):
         """
@@ -152,6 +164,7 @@ class WordLevelExtractor:
         - minimum pitch relative position
         - maximum pitch relative position
         """
+        pass
 
     def get_spectral_features(self):
         """
