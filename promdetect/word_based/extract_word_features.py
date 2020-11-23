@@ -1,23 +1,16 @@
-"""
-This script contains all preparatory extraction functions for the acoustic parameters that will later serve as the input for the neural network.
-Import necessary packages:
-`parselmouth` to send commands to the Praat phonetics software
-`numpy` to iterate with high performance
-`pandas` to manage data
-"""
-
-import numpy as np
 import pandas as pd
+import numpy as np
 import parselmouth as pm
-from parselmouth import praat
 
 
 class WordLevelExtractor:
-    def __init__(self, wav_file, words, nuclei="", gender="f", ip=None):
+    def __init__(self, wav_file, words, tones, gender="f"):
         self.wav_file = wav_file
-        self.words = words
+        self.words = pd.read_csv(words)
+        self.tones = pd.read_csv(tones)
         self.snd_obj = pm.Sound(self.wav_file)
         self.gender = gender
+        self.features = pd.DataFrame(self.words)
 
         if gender == "f":
             self.__pitch_range = (75, 500)
@@ -27,8 +20,42 @@ class WordLevelExtractor:
     def get_duration_features(self):
         """
         Get duration features:
-        - estimated duration from word start and end timestamps
+        - relative duration compared to IP mean
         """
+        to_add = pd.DataFrame(columns=["dur", "dur_normed"])
+        self.features = pd.concat([self.features, to_add])
+
+        self.features["dur"] = self.words["end"] - self.words["start"]
+
+        for row in self.tones.itertuples():
+            if row.start == row.start and row.end == row.end:  # check if NaN
+                ip_mean = np.mean(
+                    self.features.loc[
+                        (self.features["label"] != "<P>")
+                        & (  # get normed duration if word during current IP, and word label is not indicating punctuation
+                            row.start <= self.features["start"]
+                        )
+                        & (self.features["end"] <= row.end),
+                        "dur",
+                    ]
+                )
+                self.features.loc[
+                    (self.features["label"] != "<P>")
+                    & (row.start <= self.features["start"])
+                    & (self.features["end"] <= row.end),
+                    "dur_normed",
+                ] = (
+                    self.features.loc[
+                        (self.features["label"] != "<P>")
+                        & (row.start <= self.features["start"])
+                        & (self.features["end"] <= row.end),
+                        "dur",
+                    ]
+                    / ip_mean
+                )
+
+            else:
+                pass
 
     def get_intensity_features(self):
         """
