@@ -57,7 +57,6 @@ class Segmenter:
                 "[n]",
                 "[f]",
                 "[h]",
-                "<P>",
             ]
             TO_NORMALIZE = None
             NORMALIZER = None
