@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 import parselmouth as pm
+from parselmouth import praat
 
 
 class WordLevelExtractor:
@@ -60,6 +61,7 @@ class WordLevelExtractor:
     def get_intensity_features(self):
         """
         Get intensity features:
+        - rms
         - minimum intensity
         - maximum intensity
         - mean intensity
@@ -68,14 +70,85 @@ class WordLevelExtractor:
         - maximum intensity relative position
         """
 
+        to_add = pd.DataFrame(
+            columns=[
+                "int_rms",
+                "int_min",
+                "int_max",
+                "int_mean",
+                "int_std",
+                "int_min_pos",
+                "int_max_pos",
+            ]
+        )
+        self.features = pd.concat([self.features, to_add])
+
+        self.int_obj = self.snd_obj.to_intensity(minimum_pitch=self.__pitch_range[0])
+
+        self.features["int_rms"] = [
+            praat.call(self.snd_obj, "Get root-mean-square", row.start, row.end)
+            for row in self.features.itertuples()
+            if row.start == row.start and row.end == row.end and row.label != "<P>"
+        ]
+
+        self.features["int_min"] = [
+            praat.call(self.int_obj, "Get minimum", row.start, row.end, "None")
+            for row in self.features.itertuples()
+            if row.start == row.start and row.end == row.end and row.label != "<P>"
+        ]
+
+        self.features["int_max"] = [
+            praat.call(self.int_obj, "Get maximum", row.start, row.end, "None")
+            for row in self.features.itertuples()
+            if row.start == row.start and row.end == row.end and row.label != "<P>"
+        ]
+
+        self.features["int_mean"] = [
+            praat.call(self.int_obj, "Get mean", row.start, row.end, "energy")
+            for row in self.features.itertuples()
+            if row.start == row.start and row.end == row.end and row.label != "<P>"
+        ]
+
+        self.features["int_std"] = [
+            praat.call(self.int_obj, "Get standard deviation", row.start, row.end)
+            for row in self.features.itertuples()
+            if row.start == row.start and row.end == row.end and row.label != "<P>"
+        ]
+
+        self.features["int_min_pos"] = [
+            (
+                praat.call(
+                    self.int_obj, "Get time of minimum", row.start, row.end, "None"
+                )
+                - row.start
+            )
+            / row.dur
+            for row in self.features.itertuples()
+            if row.start == row.start and row.end == row.end and row.label != "<P>"
+        ]
+
+        self.features["int_max_pos"] = [
+            (
+                praat.call(
+                    self.int_obj, "Get time of maximum", row.start, row.end, "None"
+                )
+                - row.start
+            )
+            / row.dur
+            for row in self.features.itertuples()
+            if row.start == row.start and row.end == row.end and row.label != "<P>"
+        ]
+
     def get_pitch_features(self):
         """
         Get pitch features:
         - minimum pitch
         - maximum pitch
         - mean pitch
+        - pitch standard deviation
         - pitch slope
-        - pitch excursion
+        - pitch excursion relative to IP
+        - pitch excursion relative to utterance (sentence)
         - minimum pitch relative position
         - maximum pitch relative position
         """
@@ -86,4 +159,5 @@ class WordLevelExtractor:
         - mean spectral tilt (C1)
         - spectral tilt range (C1)
         - spectral centre of gravity
+        - H1-H2
         """
