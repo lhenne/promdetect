@@ -352,7 +352,7 @@ class WordLevelExtractor:
         """
 
         to_add = pd.DataFrame(
-            columns=["tilt_min", "tilt_max", "tilt_mean", "tilt_range", "cog", "h1-h2"]
+            columns=["tilt_min", "tilt_max", "tilt_mean", "tilt_range", "cog", "h1_h2"]
         )
 
         self.features = pd.concat([self.features, to_add])
@@ -362,6 +362,11 @@ class WordLevelExtractor:
             & (self.features["end"].notna())
             & (self.features["label"] != "<P>")
         ]
+
+        if not hasattr(self, "pitch_obj"):
+            self.pitch_obj = self.snd_obj.to_pitch_cc(
+                pitch_floor=self.__pitch_range[0], pitch_ceiling=self.__pitch_range[1]
+            )
 
         if "snd_part" not in self.features_has_crit.columns:
             self.features_has_crit["snd_part"] = [  # 10ms padding
@@ -401,7 +406,38 @@ class WordLevelExtractor:
             for row in self.features_has_crit.itertuples()
         ]
 
-        # TODO: H1-H2 extraction
+        for row in self.features_has_crit.itertuples():
+            q25 = 0.75 * praat.call(
+                self.pitch_obj, "Get quantile", row.start, row.end, 0.25, "Hertz"
+            )
+            q75 = 2.5 * praat.call(
+                self.pitch_obj, "Get quantile", row.start, row.end, 0.75, "Hertz"
+            )
+            try:
+                pitch_part = row.snd_part.to_pitch_cc(
+                    pitch_floor=q25, pitch_ceiling=q75
+                )
+
+                h1_freq = praat.call(pitch_part, "Get mean", 0, 0, "Hertz")
+                h2_freq = h1_freq * 2
+
+                h1_bw = 80 + 120 * h1_freq / 5_000
+                h2_bw = 80 + 120 * h2_freq / 5_000
+
+                h1_filt_snd = praat.call(
+                    row.snd_part, "Filter (one formant)", h1_freq, h1_bw
+                )
+                h2_filt_snd = praat.call(
+                    row.snd_part, "Filter (one formant)", h2_freq, h2_bw
+                )
+
+                h1 = praat.call(h1_filt_snd, "Get intensity (dB)")
+                h2 = praat.call(h2_filt_snd, "Get intensity (dB)")
+
+                self.features_has_crit.loc[row.Index, "h1_h2"] = h1 - h2
+
+            except Exception:
+                continue
 
         self.features.loc[
             (self.features["start"].notna())

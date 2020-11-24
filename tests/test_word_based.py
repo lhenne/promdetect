@@ -621,3 +621,21 @@ class SpectralExtractionTests(unittest.TestCase):
         )
 
         cls.assertTrue(np.array_equal(expected_cog_vals, true_cog_vals))
+
+    def test_h1_h2_extraction(cls):
+        expected_h1_h2_vals = np.around(
+            [
+                -0.7067939850499982,
+                1.0137325371891137,
+                2.3412160809175475,
+                3.599177911191603,
+                3.624522993435818,
+                2.0249421820579983,
+            ],
+            decimals=4,
+        )
+        true_h1_h2_vals = np.around(
+            cls.tester.features.iloc[25:31]["h1_h2"].to_numpy(dtype=float), decimals=4
+        )
+
+        cls.assertTrue(np.array_equal(expected_h1_h2_vals, true_h1_h2_vals))
