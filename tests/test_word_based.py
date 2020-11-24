@@ -342,3 +342,175 @@ class PitchExtractionTests(unittest.TestCase):
         )
 
         cls.tester.get_pitch_features()
+
+    def test_f0_min_extraction(cls):
+        expected_min_f0_vals = np.around(
+            [
+                93.42051927019007,
+                119.74223083992594,
+                66.28219915326169,
+                60.263752559173824,
+                76.74685352476915,
+                69.66641648219964,
+            ],
+            decimals=4,
+        )
+        true_min_f0_vals = np.around(
+            cls.tester.features.iloc[25:31]["f0_min"].to_numpy(dtype=float), decimals=4,
+        )
+
+        cls.assertTrue(np.array_equal(expected_min_f0_vals, true_min_f0_vals))
+
+    def test_f0_max_extraction(cls):
+        expected_max_f0_vals = np.around(
+            [
+                175.8310095151027,
+                148.73301023639186,
+                110.13415499332966,
+                79.85128984114829,
+                83.28485978576516,
+                122.86386702663233,
+            ],
+            decimals=4,
+        )
+        true_max_f0_vals = np.around(
+            cls.tester.features.iloc[25:31]["f0_max"].to_numpy(dtype=float), decimals=4,
+        )
+
+        cls.assertTrue(np.array_equal(expected_max_f0_vals, true_max_f0_vals))
+
+    def test_f0_mean_extraction(cls):
+        expected_mean_f0_vals = np.around(
+            [
+                144.19247747891387,
+                141.24714063080444,
+                82.45323698156723,
+                71.93538145114684,
+                79.82018690856482,
+                89.27793109999983,
+            ],
+            decimals=4,
+        )
+        true_mean_f0_vals = np.around(
+            cls.tester.features.iloc[25:31]["f0_mean"].to_numpy(dtype=float),
+            decimals=4,
+        )
+
+        cls.assertTrue(np.array_equal(expected_mean_f0_vals, true_mean_f0_vals))
+
+    def test_f0_std_extraction(cls):
+        expected_f0_std_vals = np.around(
+            [
+                29.39623269825003,
+                6.204980285370182,
+                8.502563974126964,
+                5.771182232504161,
+                2.430694437462275,
+                11.699726532753346,
+            ],
+            decimals=4,
+        )
+        true_f0_std_vals = np.around(
+            cls.tester.features.iloc[25:31]["f0_std"].to_numpy(dtype=float), decimals=4,
+        )
+
+        cls.assertTrue(np.array_equal(expected_f0_std_vals, true_f0_std_vals))
+
+    def test_f0_slope_extraction(cls):
+        expected_f0_slope_vals = np.around(
+            [
+                82.29572142068675,
+                35.19382999003871,
+                39.75845759512797,
+                46.03455041025139,
+                38.084437731771985,
+                65.2757023779267,
+            ],
+            decimals=4,
+        )
+        true_f0_slope_vals = np.around(
+            cls.tester.features.iloc[25:31]["f0_slope"].to_numpy(dtype=float),
+            decimals=4,
+        )
+
+        cls.assertTrue(np.array_equal(expected_f0_slope_vals, true_f0_slope_vals))
+
+    def test_f0_excursion_ip_extraction(cls):
+        expected_excursion_ip_vals = np.around(
+            [
+                12 * np.log2(175.8310095151027 / 71.78073529645441),
+                12 * np.log2(148.73301023639186 / 71.78073529645441),
+                12 * np.log2(110.13415499332966 / 71.78073529645441),
+                12 * np.log2(79.85128984114829 / 71.78073529645441),
+                12 * np.log2(83.28485978576516 / 71.78073529645441),
+                12 * np.log2(122.86386702663233 / 71.78073529645441),
+            ],
+            decimals=4,
+        )
+        true_excursion_ip_vals = np.around(
+            cls.tester.features.iloc[25:31]["f0_exc_ip"].to_numpy(dtype=float),
+            decimals=4,
+        )
+
+        cls.assertTrue(
+            np.array_equal(expected_excursion_ip_vals, true_excursion_ip_vals)
+        )
+
+    def test_f0_excursion_utterance_extraction(cls):
+        expected_excursion_utt_vals = np.around(
+            [
+                12 * np.log2(175.8310095151027 / 73.27927882944502),
+                12 * np.log2(148.73301023639186 / 73.27927882944502),
+                12 * np.log2(110.13415499332966 / 73.27927882944502),
+                12 * np.log2(79.85128984114829 / 73.27927882944502),
+                12 * np.log2(83.28485978576516 / 73.27927882944502),
+                12 * np.log2(122.86386702663233 / 73.27927882944502),
+            ],
+            decimals=4,
+        )
+        true_excursion_utt_vals = np.around(
+            cls.tester.features.iloc[25:31]["f0_exc_utt"].to_numpy(dtype=float),
+            decimals=4,
+        )
+
+        cls.assertTrue(
+            np.array_equal(expected_excursion_utt_vals, true_excursion_utt_vals)
+        )
+
+    def test_f0_min_pos_extraction(cls):
+        expected_f0_min_pos_vals = np.around(
+            [
+                0.3982791524084948,
+                0.629278680837722,
+                0.7486519460175809,
+                0.6298901393354346,
+                0.005025971527465514,
+                0.31988122715904505,
+            ],
+            decimals=4,
+        )
+        true_f0_min_pos_vals = np.around(
+            cls.tester.features.iloc[25:31]["f0_min_pos"].to_numpy(dtype=float),
+            decimals=4,
+        )
+
+        cls.assertTrue(np.array_equal(expected_f0_min_pos_vals, true_f0_min_pos_vals))
+
+    def test_f0_max_pos_vals(cls):
+        expected_f0_max_pos_vals = np.around(
+            [
+                0.700990392208448,
+                0.1603821506720504,
+                0.6703292565369189,
+                0.701344230082128,
+                0.19740765679102984,
+                0.16600548182339994,
+            ],
+            decimals=4,
+        )
+        true_f0_max_pos_vals = np.around(
+            cls.tester.features.iloc[25:31]["f0_max_pos"].to_numpy(dtype=float),
+            decimals=4,
+        )
+
+        cls.assertTrue(np.array_equal(expected_f0_max_pos_vals, true_f0_max_pos_vals))
