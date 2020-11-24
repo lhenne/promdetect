@@ -496,7 +496,7 @@ class PitchExtractionTests(unittest.TestCase):
 
         cls.assertTrue(np.array_equal(expected_f0_min_pos_vals, true_f0_min_pos_vals))
 
-    def test_f0_max_pos_vals(cls):
+    def test_f0_max_pos_extraction(cls):
         expected_f0_max_pos_vals = np.around(
             [
                 0.700990392208448,
@@ -514,3 +514,110 @@ class PitchExtractionTests(unittest.TestCase):
         )
 
         cls.assertTrue(np.array_equal(expected_f0_max_pos_vals, true_f0_max_pos_vals))
+
+
+class SpectralExtractionTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.wav_file = "/home/lukas/Dokumente/Uni/ma_thesis/quelldaten/DIRNDL-prosody/dlf-nachrichten-200703250000.wav"
+        cls.words = "/home/lukas/Dokumente/Uni/ma_thesis/promdetect/data/dirndl/word_based/dlf-nachrichten-200703250000_words.csv"
+        cls.tones = "/home/lukas/Dokumente/Uni/ma_thesis/promdetect/data/dirndl/word_based/dlf-nachrichten-200703250000_tones.csv"
+        cls.tester = extract_word_features.WordLevelExtractor(
+            cls.wav_file, cls.words, cls.tones, "m"
+        )
+
+        cls.tester.get_spectral_features()
+
+    def test_spectral_tilt_min_extraction(cls):
+        expected_tilt_min_vals = np.around(
+            [
+                -22.605371916907718,
+                -29.896507915175984,
+                -315.4467342463039,
+                28.13171957617249,
+                -214.4039564091288,
+                -51.10279633339294,
+            ],
+            decimals=4,
+        )
+        true_tilt_min_vals = np.around(
+            cls.tester.features.iloc[25:31]["tilt_min"].to_numpy(dtype=float),
+            decimals=4,
+        )
+
+        cls.assertTrue(np.array_equal(expected_tilt_min_vals, true_tilt_min_vals))
+
+    def test_spectral_tilt_max_extraction(cls):
+        expected_tilt_max_vals = np.around(
+            [
+                343.9510852989584,
+                382.27356399932046,
+                417.90094581010777,
+                396.3016887841715,
+                359.00557826875956,
+                361.7864811928621,
+            ],
+            decimals=4,
+        )
+        true_tilt_max_vals = np.around(
+            cls.tester.features.iloc[25:31]["tilt_max"].to_numpy(dtype=float),
+            decimals=4,
+        )
+
+        cls.assertTrue(np.array_equal(expected_tilt_max_vals, true_tilt_max_vals))
+
+    def test_spectral_tilt_mean_extraction(cls):
+        expected_tilt_mean_vals = np.around(
+            [
+                159.78481037446087,
+                225.58210242621072,
+                138.01195066163353,
+                253.17569945653995,
+                18.42976580688469,
+                179.58511190532732,
+            ],
+            decimals=4,
+        )
+        true_tilt_mean_vals = np.around(
+            cls.tester.features.iloc[25:31]["tilt_mean"].to_numpy(dtype=float),
+            decimals=4,
+        )
+
+        cls.assertTrue(np.array_equal(expected_tilt_mean_vals, true_tilt_mean_vals))
+
+    def test_spectral_tilt_range_extraction(cls):
+        expected_tilt_range_vals = np.around(
+            [
+                343.9510852989584 - -22.605371916907718,
+                382.27356399932046 - -29.896507915175984,
+                417.90094581010777 - -315.4467342463039,
+                396.3016887841715 - 28.13171957617249,
+                359.00557826875956 - -214.4039564091288,
+                361.7864811928621 - -51.10279633339294,
+            ],
+            decimals=4,
+        )
+        true_tilt_range_vals = np.around(
+            cls.tester.features.iloc[25:31]["tilt_range"].to_numpy(dtype=float),
+            decimals=4,
+        )
+
+        cls.assertTrue(np.array_equal(expected_tilt_range_vals, true_tilt_range_vals))
+
+    def test_spectral_cog_extraction(cls):
+        expected_cog_vals = np.around(
+            [
+                383.5611034127955,
+                315.8143805260646,
+                875.5175706419298,
+                303.95234140175774,
+                1038.2474869132793,
+                384.80982383355126,
+            ],
+            decimals=4,
+        )
+        true_cog_vals = np.around(
+            cls.tester.features.iloc[25:31]["cog"].to_numpy(dtype=float), decimals=4,
+        )
+
+        cls.assertTrue(np.array_equal(expected_cog_vals, true_cog_vals))

@@ -343,8 +343,68 @@ class WordLevelExtractor:
     def get_spectral_features(self):
         """
         Get spectral features:
-        - mean spectral tilt (C1)
-        - spectral tilt range (C1)
+        - minimum spectral tilt (MFCC-C1)
+        - maximum spectral tilt (MFCC-C1)
+        - mean spectral tilt (MFCC-C1)
+        - spectral tilt range (MFCC-C1)
         - spectral centre of gravity
         - H1-H2
         """
+
+        to_add = pd.DataFrame(
+            columns=["tilt_min", "tilt_max", "tilt_mean", "tilt_range", "cog", "h1-h2"]
+        )
+
+        self.features = pd.concat([self.features, to_add])
+
+        self.features_has_crit = self.features.copy().loc[
+            (self.features["start"].notna())
+            & (self.features["end"].notna())
+            & (self.features["label"] != "<P>")
+        ]
+
+        if "snd_part" not in self.features_has_crit.columns:
+            self.features_has_crit["snd_part"] = [  # 10ms padding
+                self.snd_obj.extract_part(
+                    from_time=row.start - 0.01, to_time=row.end + 0.01
+                )
+                for row in self.features_has_crit.itertuples()
+            ]
+
+        self.features_has_crit["mfcc_part"] = [
+            row.snd_part.to_mfcc(number_of_coefficients=1).to_array()[1]
+            for row in self.features_has_crit.itertuples()
+        ]
+
+        self.features_has_crit["spec_part"] = [
+            row.snd_part.to_spectrum() for row in self.features_has_crit.itertuples()
+        ]
+
+        self.features_has_crit["tilt_min"] = [
+            np.min(row.mfcc_part) for row in self.features_has_crit.itertuples()
+        ]
+
+        self.features_has_crit["tilt_max"] = [
+            np.max(row.mfcc_part) for row in self.features_has_crit.itertuples()
+        ]
+
+        self.features_has_crit["tilt_mean"] = [
+            np.mean(row.mfcc_part) for row in self.features_has_crit.itertuples()
+        ]
+
+        self.features_has_crit["tilt_range"] = (
+            self.features_has_crit["tilt_max"] - self.features_has_crit["tilt_min"]
+        )
+
+        self.features_has_crit["cog"] = [
+            row.spec_part.get_center_of_gravity()
+            for row in self.features_has_crit.itertuples()
+        ]
+
+        # TODO: H1-H2 extraction
+
+        self.features.loc[
+            (self.features["start"].notna())
+            & (self.features["end"].notna())
+            & (self.features["label"] != "<P>")
+        ] = self.features_has_crit
