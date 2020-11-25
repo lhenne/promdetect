@@ -28,10 +28,11 @@ class FrameLevelExtractor:
         timestamps = self.pitch_obj.ts()
 
         pitch_cands = self.pitch_obj.to_array().T
-        best_cands = [max(frame, key=lambda x: x[1])[0] for frame in pitch_cands]
+        best_cands = [max(frame, key=lambda x: x[1]) for frame in pitch_cands]
+        f0, voicing_pr = zip(*best_cands)  # candidate strength as replacement for voicing probability, will be normalized later so high values are not problematic
 
-        cols_to_add = ["time", "f0"]
-        vals_to_add = zip(timestamps, best_cands)
+        cols_to_add = ["time", "f0", "voicing_pr"]
+        vals_to_add = zip(timestamps, f0, voicing_pr)
 
         data_to_add = pd.DataFrame(vals_to_add, columns=cols_to_add)
         self.features = pd.concat([self.features, data_to_add])
