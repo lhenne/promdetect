@@ -1,5 +1,6 @@
 import pandas as pd
 import parselmouth as pm
+from parselmouth import praat
 
 
 class FrameLevelExtractor:
@@ -43,3 +44,22 @@ class FrameLevelExtractor:
             )
             for frame in self.features.itertuples()
         ]
+
+    def loudness_extraction(self):
+        if "time" not in self.features.columns:
+            self.pitch_extraction()
+
+        self.cochleagram = praat.call(
+            self.snd_obj, "To Cochleagram", 0.01, 0.1, 0.03, 0.03
+        )
+        self.features["excitation"] = [
+            praat.call(self.cochleagram, "To Excitation (slice)", frame.time)
+            for frame in self.features.itertuples()
+        ]
+
+        self.features["loudness"] = [
+            praat.call(frame.excitation, "Get loudness")
+            for frame in self.features.itertuples()
+        ]
+
+        self.features.drop(columns="excitation")
