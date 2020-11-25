@@ -9,8 +9,6 @@ class FrameBasedExtractionTests(unittest.TestCase):
         cls.wav_file = "/home/lukas/Dokumente/Uni/ma_thesis/quelldaten/DIRNDL-prosody/dlf-nachrichten-200703250000.wav"
         cls.tester = extract_frame_features.FrameLevelExtractor(cls.wav_file, "m")
 
-        cls.tester.pitch_extraction()
-
     def test_pitch_extraction(cls):
         expected_f0_vals = np.around(
             [

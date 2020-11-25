@@ -22,6 +22,8 @@ class FrameLevelExtractor:
             pitch_ceiling=self.__pitch_range[1],
         )
 
+        self.pitch_extraction()
+
     def pitch_extraction(self):
         timestamps = self.pitch_obj.ts()
 
@@ -35,8 +37,6 @@ class FrameLevelExtractor:
         self.features = pd.concat([self.features, data_to_add])
 
     def rms_extraction(self):
-        if "time" not in self.features.columns:
-            self.pitch_extraction()
 
         self.features["rms"] = [
             self.snd_obj.get_rms(
@@ -46,8 +46,6 @@ class FrameLevelExtractor:
         ]
 
     def loudness_extraction(self):
-        if "time" not in self.features.columns:
-            self.pitch_extraction()
 
         self.cochleagram = praat.call(
             self.snd_obj, "To Cochleagram", 0.01, 0.1, 0.03, 0.03
