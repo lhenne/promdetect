@@ -61,3 +61,22 @@ class FrameLevelExtractor:
         ]
 
         self.features.drop(columns="excitation")
+
+    def zcr_extraction(self):
+
+        self.features["snd_part"] = [
+            self.snd_obj.extract_part(from_time=frame.time, to_time=frame.time + 0.01)
+            for frame in self.features.itertuples()
+        ]
+
+        self.features["pp_part"] = [
+            praat.call(frame.snd_part, "To PointProcess (zeroes)", 1, "yes", "yes")
+            for frame in self.features.itertuples()
+        ]
+
+        self.features["zcr"] = [
+            praat.call(frame.pp_part, "Get number of points")
+            for frame in self.features.itertuples()
+        ]
+
+        self.features.drop(columns=["snd_part", "pp_part"])

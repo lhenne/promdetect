@@ -67,3 +67,11 @@ class FrameBasedExtractionTests(unittest.TestCase):
         )
 
         cls.assertTrue(np.array_equal(expected_loudness_vals, true_loudness_vals))
+
+    def test_zero_crossing_rate_extraction(cls):
+        cls.tester.zcr_extraction()
+
+        expected_zcr_vals = np.array([5, 6, 6, 5, 8, 7])
+        true_zcr_vals = np.array(cls.tester.features.iloc[26779:26785]["zcr"])
+
+        cls.assertTrue(np.array_equal(expected_zcr_vals, true_zcr_vals))
