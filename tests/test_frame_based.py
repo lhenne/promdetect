@@ -92,6 +92,7 @@ class FrameBasedExtractionTests(unittest.TestCase):
             decimals=4,
         )
         true_hnr_vals = np.around(
-            cls.tester.features.iloc[26780:26787]["hnr"], decimals=4)
+            cls.tester.features.iloc[26780:26787]["hnr"], decimals=4
+        )
 
         cls.assertTrue(np.array_equal(expected_hnr_vals, true_hnr_vals))

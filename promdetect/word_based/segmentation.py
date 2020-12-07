@@ -45,8 +45,6 @@ class Segmenter:
             outfile = f"{directory}/{recording}_{self.level}"
 
             content.to_csv(outfile + ".csv", index=False)
-            with open(outfile + ".npy", "wb") as dest:
-                np.save(dest, content.to_numpy())
 
     # ANCILLARY FUNCTIONS
     def filter_annots(self, content):
