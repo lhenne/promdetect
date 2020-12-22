@@ -74,11 +74,9 @@ class Extractor(object):
         """
         Create pitch objects for each of the nucleus sound objects extracted by `extract_parts()`
         """
-        
-        nuclei_filtered = self.nuclei[
-            self.nuclei["duration"] >= 0.06
-        ].copy()
-         
+
+        nuclei_filtered = self.nuclei[self.nuclei["duration"] >= 0.06].copy()
+
         nuclei_filtered["part_pitch"] = np.array(
             [
                 row.part_obj.to_pitch_cc(
@@ -88,7 +86,7 @@ class Extractor(object):
                 for row in nuclei_filtered.itertuples()
             ]
         )
-        
+
         self.nuclei["part_pitch"] = nuclei_filtered["part_pitch"]
 
     def get_rms(self):
@@ -152,9 +150,7 @@ class Extractor(object):
             else:
                 pass
 
-        nuclei_filtered = self.nuclei[
-            self.nuclei["part_pitch"].notna()
-        ].copy()
+        nuclei_filtered = self.nuclei[self.nuclei["part_pitch"].notna()].copy()
 
         nuclei_filtered["pitch_slope"] = np.array(
             [
@@ -185,7 +181,7 @@ class Extractor(object):
 
         return nuclei_filtered["intens_min"]
 
-    def get_intensity_nuclei(self):
+    def get_max_intensity_nuclei(self):
         """
         This function extracts the maximum intensity value in each syllable nucleus
         """
@@ -204,6 +200,26 @@ class Extractor(object):
         )
 
         return nuclei_filtered["intens_max"]
+
+    def get_mean_intensity_nuclei(self):
+        """
+        Extract the mean intensity value for each nucleus
+        """
+
+        check_input_df(self.nuclei, ["start_est", "end"])
+
+        nuclei_filtered = self.nuclei[
+            (self.nuclei["start_est"].notna()) & (self.nuclei["end"].notna())
+        ].copy()
+
+        nuclei_filtered["intens_mean"] = np.array(
+            [
+                praat.call(self.int_obj, "Get mean", row.start_est, row.end, "energy")
+                for row in nuclei_filtered.itertuples()
+            ]
+        )
+
+        return nuclei_filtered["intens_mean"]
 
     def get_intensity_std_nuclei(self):
         """
@@ -336,6 +352,26 @@ class Extractor(object):
         self.nuclei["f0_min"] = f0_min
 
         return f0_min
+
+    def get_f0_mean_nuclei(self):
+        """
+        Extracts the mean F0 value for each syllable nucleus
+        """
+
+        check_input_df(self.nuclei, ["start_est", "end"])
+
+        nuclei_filtered = self.nuclei[
+            (self.nuclei["start_est"].notna()) & (self.nuclei["end"].notna())
+        ].copy()
+
+        nuclei_filtered["f0_mean"] = [
+            praat.call(self.pitch_obj, "Get mean", row.start_est, row.end, "Hertz")
+            for row in nuclei_filtered.itertuples()
+        ]
+
+        f0_mean = nuclei_filtered["f0_mean"]
+
+        return f0_mean
 
     def get_f0_range_nuclei(self):
         """
@@ -481,17 +517,19 @@ class Extractor(object):
 
         check_input_df(self.nuclei, ["start_est", "end"])
 
+        if "part_obj" not in self.nuclei.columns:
+            self.extract_parts()
+
         timestamps_filtered = self.nuclei[
             (self.nuclei["start_est"].notna()) & (self.nuclei["end"].notna())
         ].copy()
 
         def calc_tilt(
-            snd_obj, start, end
+            part_obj, start, end
         ):  # ancillary function to calculcate spectral tilt as mean C1 value over syllable nucleus
 
             if (end - start) > 0.03:
-                nucl_obj = snd_obj.extract_part(from_time=start, to_time=end)
-                nucl_mfcc = nucl_obj.to_mfcc(
+                nucl_mfcc = part_obj.to_mfcc(
                     number_of_coefficients=1, window_length=0.01
                 )
                 nucl_tilt = np.mean(nucl_mfcc.to_array()[1])
@@ -501,7 +539,7 @@ class Extractor(object):
             return nucl_tilt
 
         timestamps_filtered["tilt_mean"] = [
-            calc_tilt(self.snd_obj, row.start_est, row.end)
+            calc_tilt(row.part_obj, row.start_est, row.end)
             for row in timestamps_filtered.itertuples()
         ]
 
@@ -517,17 +555,19 @@ class Extractor(object):
 
         check_input_df(self.nuclei, ["start_est", "end"])
 
+        if "part_obj" not in self.nuclei.columns:
+            self.extract_parts()
+
         timestamps_filtered = self.nuclei[
             (self.nuclei["start_est"].notna()) & (self.nuclei["end"].notna())
         ].copy()
 
         def calc_tilt_range(
-            snd_obj, start, end
+            part_obj, start, end
         ):  # ancillary function to calculcate spectral tilt as mean C1 value over syllable nucleus
 
             if (end - start) > 0.03:
-                nucl_obj = snd_obj.extract_part(from_time=start, to_time=end)
-                nucl_mfcc = nucl_obj.to_mfcc(
+                nucl_mfcc = part_obj.to_mfcc(
                     number_of_coefficients=1, window_length=0.01
                 ).to_array()[1]
                 nucl_tilt = max(nucl_mfcc) - min(nucl_mfcc)
@@ -538,13 +578,180 @@ class Extractor(object):
             return nucl_tilt
 
         timestamps_filtered["tilt_range"] = [
-            calc_tilt_range(self.snd_obj, row.start_est, row.end)
+            calc_tilt_range(row.part_obj, row.start_est, row.end)
             for row in timestamps_filtered.itertuples()
         ]
 
         tilt_range = timestamps_filtered["tilt_range"]
 
         return tilt_range
+
+    def get_min_spectral_tilt(self):
+        """
+        Calculate the spectral tilt minimum during each syllable nucleus.
+        Values are extracted from Praat MFCC objects.
+        """
+
+        check_input_df(self.nuclei, ["start_est", "end"])
+
+        if "part_obj" not in self.nuclei.columns:
+            self.extract_parts()
+
+        timestamps_filtered = self.nuclei[
+            (self.nuclei["start_est"].notna()) & (self.nuclei["end"].notna())
+        ].copy()
+
+        def calc_min_tilt(
+            part_obj, start, end
+        ):  # ancillary function to calculcate spectral tilt as minimum C1 value over syllable nucleus
+
+            if (end - start) > 0.03:
+                nucl_mfcc = part_obj.to_mfcc(
+                    number_of_coefficients=1, window_length=0.01
+                ).to_array()[1]
+                nucl_tilt = min(nucl_mfcc)
+
+            else:
+                nucl_tilt = np.nan
+
+            return nucl_tilt
+
+        timestamps_filtered["min_tilt"] = [
+            calc_min_tilt(row.part_obj, row.start_est, row.end)
+            for row in timestamps_filtered.itertuples()
+        ]
+
+        min_tilt = timestamps_filtered["min_tilt"]
+
+        return min_tilt
+
+    def get_max_spectral_tilt(self):
+        """
+        Calculate the spectral tilt maximum during each syllable nucleus.
+        Values are extracted from Praat MFCC objects.
+        """
+
+        check_input_df(self.nuclei, ["start_est", "end"])
+
+        if "part_obj" not in self.nuclei.columns:
+            self.extract_parts()
+
+        timestamps_filtered = self.nuclei[
+            (self.nuclei["start_est"].notna()) & (self.nuclei["end"].notna())
+        ].copy()
+
+        def calc_max_tilt(
+            part_obj, start, end
+        ):  # ancillary function to calculcate spectral tilt as maximum C1 value over syllable nucleus
+
+            if (end - start) > 0.03:
+                nucl_mfcc = part_obj.to_mfcc(
+                    number_of_coefficients=1, window_length=0.01
+                ).to_array()[1]
+                nucl_tilt = max(nucl_mfcc)
+
+            else:
+                nucl_tilt = np.nan
+
+            return nucl_tilt
+
+        timestamps_filtered["max_tilt"] = [
+            calc_max_tilt(row.part_obj, row.start_est, row.end)
+            for row in timestamps_filtered.itertuples()
+        ]
+
+        max_tilt = timestamps_filtered["max_tilt"]
+
+        return max_tilt
+
+    def get_spectral_cog(self):
+        """
+        Extracts the spectral center of gravity (CoG)
+        """
+        check_input_df(self.nuclei, ["start_est", "end"])
+
+        if "part_obj" not in self.nuclei.columns:
+            self.extract_parts()
+
+        timestamps_filtered = self.nuclei[
+            (self.nuclei["start_est"].notna()) & (self.nuclei["end"].notna())
+        ].copy()
+
+        timestamps_filtered["spec_part"] = [
+            row.part_obj.to_spectrum() for row in timestamps_filtered.itertuples()
+        ]
+
+        timestamps_filtered["cog"] = [
+            row.spec_part.get_center_of_gravity()
+            for row in timestamps_filtered.itertuples()
+        ]
+
+        cog = timestamps_filtered["cog"]
+
+        return cog
+
+    def get_h1_h2(self):
+        """
+        Extracts the H1-H2 value according to the calculation in Mooshammer (2010)
+        """
+
+        check_input_df(self.nuclei, ["start_est", "end"])
+
+        if "part_obj" not in self.nuclei.columns:
+            self.extract_parts()
+            self.calc_pitch_parts()
+        else:
+            if "part_pitch" not in self.nuclei.columns:
+                self.calc_pitch_parts()
+            else:
+                pass
+
+        timestamps_filtered = self.nuclei[
+            (self.nuclei["start_est"].notna()) & (self.nuclei["end"].notna())
+        ].copy()
+
+        def calc_h1_h2(row):
+            q25 = 0.75 * praat.call(
+                self.pitch_obj, "Get quantile", row.start_est, row.end, 0.25, "Hertz"
+            )
+            q75 = 2.5 * praat.call(
+                self.pitch_obj, "Get quantile", row.start_est, row.end, 0.75, "Hertz"
+            )
+            try:
+                pitch_part = row.part_obj.to_pitch_cc(
+                    pitch_floor=q25, pitch_ceiling=q75
+                )
+
+                h1_freq = praat.call(pitch_part, "Get mean", 0, 0, "Hertz")
+                h2_freq = h1_freq * 2
+
+                h1_bw = 80 + 120 * h1_freq / 5_000
+                h2_bw = 80 + 120 * h2_freq / 5_000
+
+                h1_filt_snd = praat.call(
+                    row.part_obj, "Filter (one formant)", h1_freq, h1_bw
+                )
+                h2_filt_snd = praat.call(
+                    row.part_obj, "Filter (one formant)", h2_freq, h2_bw
+                )
+
+                h1 = praat.call(h1_filt_snd, "Get intensity (dB)")
+                h2 = praat.call(h2_filt_snd, "Get intensity (dB)")
+
+                return h1 - h2
+
+            # Some bug in Parselmouth or Praat causes the calculation to fail sometimes, this is unfixable for now, so the function will just return NaN
+            # TODO: investigate fix
+            except Exception:
+                return np.nan
+
+        timestamps_filtered["h1_h2"] = [
+            calc_h1_h2(row) for row in timestamps_filtered.itertuples()
+        ]
+
+        h1_h2 = timestamps_filtered["h1_h2"]
+
+        return h1_h2
 
     # ANCILLARY FUNCTIONS
     def relative_position(self, extremum, type, start, end):
