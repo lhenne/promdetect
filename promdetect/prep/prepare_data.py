@@ -75,7 +75,7 @@ class FeatureSet:
 
         else:
             if func_to_run in [
-                "intensity_nuclei",
+                "max_intensity_nuclei",
                 "min_intensity_nuclei",
                 "intensity_ip",
                 "intensity_std_nuclei",

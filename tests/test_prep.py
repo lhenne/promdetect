@@ -627,7 +627,7 @@ class FeatureExtractionTests(unittest.TestCase):
         tester = extract_features.Extractor(wav_file, nuclei=nuclei_df)
         tester.calc_intensity()
 
-        intensities = np.around(tester.get_intensity_nuclei(), decimals=4)
+        intensities = np.around(tester.get_max_intensity_nuclei(), decimals=4)
 
         expected_vals = np.around(
             np.array(
@@ -1134,4 +1134,4 @@ class FeatureSetTests(unittest.TestCase):
         self.assertTrue(isinstance(data, DataFrame))
         self.assertTrue("rms" in data.columns)
         self.assertTrue("duration_normed" in data.columns)
-        self.assertTrue("intensity_nuclei" in data.columns)
+        self.assertTrue("max_intensity_nuclei" in data.columns)

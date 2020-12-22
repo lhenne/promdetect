@@ -74,11 +74,9 @@ class Extractor(object):
         """
         Create pitch objects for each of the nucleus sound objects extracted by `extract_parts()`
         """
-        
-        nuclei_filtered = self.nuclei[
-            self.nuclei["duration"] >= 0.06
-        ].copy()
-         
+
+        nuclei_filtered = self.nuclei[self.nuclei["duration"] >= 0.06].copy()
+
         nuclei_filtered["part_pitch"] = np.array(
             [
                 row.part_obj.to_pitch_cc(
@@ -88,7 +86,7 @@ class Extractor(object):
                 for row in nuclei_filtered.itertuples()
             ]
         )
-        
+
         self.nuclei["part_pitch"] = nuclei_filtered["part_pitch"]
 
     def get_rms(self):
@@ -152,9 +150,7 @@ class Extractor(object):
             else:
                 pass
 
-        nuclei_filtered = self.nuclei[
-            self.nuclei["part_pitch"].notna()
-        ].copy()
+        nuclei_filtered = self.nuclei[self.nuclei["part_pitch"].notna()].copy()
 
         nuclei_filtered["pitch_slope"] = np.array(
             [
@@ -185,7 +181,7 @@ class Extractor(object):
 
         return nuclei_filtered["intens_min"]
 
-    def get_intensity_nuclei(self):
+    def get_max_intensity_nuclei(self):
         """
         This function extracts the maximum intensity value in each syllable nucleus
         """
