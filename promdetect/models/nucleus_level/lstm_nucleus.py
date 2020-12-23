@@ -127,7 +127,7 @@ model.to(device)
 
 """## Define loss function and optimizer"""
 
-loss_func = nn.BCEWithLogitsLoss(pos_weight=torch.tensor([3])).to(device)
+loss_func = nn.BCEWithLogitsLoss().to(device)
 optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE)
 
 """## Define function to determine real sequence length and define metrics function"""
@@ -149,7 +149,7 @@ def collect_metrics(preds, lengths, labels):
 
 """## Train model"""
 
-model_num = 10
+model_num = 12
 
 model.train()
 max_e_f1 = 0
@@ -198,7 +198,7 @@ for e in range(1, EPOCHS + 1):
 
 """## Evaluate model"""
 
-model_file = "model-10_epoch-49_f1-0.603.pt"
+model_file = "model-12_epoch-49_f1-0.640.pt"
 eval_model = torch.load(f"model_store/nucleus_level/{model_file}").eval()
 
 val_data = trainData(torch.FloatTensor(val_features_input), torch.FloatTensor(val_labels_input))
@@ -209,9 +209,8 @@ for feature_batch, label_batch in val_loader:
   input_lengths = get_seq_len(feature_batch)
   input_features = pack_padded_sequence(feature_batch, input_lengths, batch_first=True, enforce_sorted=False)
   
-  
   y_pred = eval_model(input_features)
-  y_true, y_pred_bin = collect_metrics(y_pred, input_lengths, label_batch)
+  y_pred_bin, y_true = collect_metrics(y_pred, input_lengths, label_batch)
 
 report = classification_report(y_true, y_pred_bin, digits=4)
 print(report)
