@@ -33,13 +33,15 @@ class WordLevelExtractor:
                 ip_mean = np.mean(
                     self.features.loc[
                         (self.features["label"] != "<P>")
-                        & (  # get normed duration if word during current IP, and word label is not indicating punctuation
+                        & (  # get normed duration if word occurs during current IP, and word label is not indicating punctuation
                             row.start <= self.features["start"]
                         )
                         & (self.features["end"] <= row.end),
                         "dur",
                     ]
                 )
+
+                # Divide all durations by corresponding IP mean
                 self.features.loc[
                     (self.features["label"] != "<P>")
                     & (row.start <= self.features["start"])
@@ -85,6 +87,7 @@ class WordLevelExtractor:
 
         self.int_obj = self.snd_obj.to_intensity(minimum_pitch=self.__pitch_range[0])
 
+        # Filter main DataFrame for word-label rows with timestamps
         self.features_has_crit = self.features.copy().loc[
             (self.features["start"].notna())
             & (self.features["end"].notna())
@@ -184,12 +187,14 @@ class WordLevelExtractor:
             pitch_floor=self.__pitch_range[0], pitch_ceiling=self.__pitch_range[1]
         )
 
+        # Filter main DataFrame for word-label rows with timestamps
         self.features_has_crit = self.features.copy().loc[  # TODO: Filter function to call in all `get` blocks
             (self.features["start"].notna())
             & (self.features["end"].notna())
             & (self.features["label"] != "<P>")
         ]
 
+        # Requires separate sound slice for each word
         self.features_has_crit["snd_part"] = [  # 10ms padding
             self.snd_obj.extract_part(
                 from_time=row.start - 0.01, to_time=row.end + 0.01
@@ -197,6 +202,7 @@ class WordLevelExtractor:
             for row in self.features_has_crit.itertuples()
         ]
 
+        # Requires separate pitch contour for each word
         self.features_has_crit["pitch_part"] = [
             row.snd_part.to_pitch_cc(
                 pitch_floor=self.__pitch_range[0], pitch_ceiling=self.__pitch_range[1]
@@ -241,6 +247,7 @@ class WordLevelExtractor:
                     self.pitch_obj, "Get quantile", ip.start, ip.end, 0.1, "Hertz"
                 )
 
+                # Semitone scale: 12 * log2(F0_max / F0_10%)
                 self.features_has_crit.loc[
                     (ip.start <= self.features_has_crit["start"])
                     & (self.features_has_crit["end"] <= ip.end),
@@ -257,6 +264,7 @@ class WordLevelExtractor:
                     )
                 )
 
+        # Create copy of feature DataFrame to separately save 10th pitch percentile of entire sentence as low end
         bounds = (
             self.features.copy()
             .loc[
@@ -272,7 +280,7 @@ class WordLevelExtractor:
 
                 if row.level_0 < len(bounds):
                     utt_start = row.end
-                    try:
+                    try:  # find sentence boundaries
                         utt_end = bounds.loc[bounds.index == int(row.Index) + 1][
                             "start"
                         ].item()
@@ -357,6 +365,7 @@ class WordLevelExtractor:
 
         self.features = pd.concat([self.features, to_add])
 
+        # Filter main DataFrame for word-label rows with timestamps
         self.features_has_crit = self.features.copy().loc[
             (self.features["start"].notna())
             & (self.features["end"].notna())
@@ -368,6 +377,7 @@ class WordLevelExtractor:
                 pitch_floor=self.__pitch_range[0], pitch_ceiling=self.__pitch_range[1]
             )
 
+        # Requires separate sound slice for each word
         if "snd_part" not in self.features_has_crit.columns:
             self.features_has_crit["snd_part"] = [  # 10ms padding
                 self.snd_obj.extract_part(
@@ -406,6 +416,7 @@ class WordLevelExtractor:
             for row in self.features_has_crit.itertuples()
         ]
 
+        # Refer to promdetect/prep/extract_features.py::Extractor.calc_h1_h2
         for row in self.features_has_crit.itertuples():
             q25 = 0.75 * praat.call(
                 self.pitch_obj, "Get quantile", row.start, row.end, 0.25, "Hertz"

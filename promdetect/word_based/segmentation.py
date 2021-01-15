@@ -31,6 +31,7 @@ class Segmenter:
                 content_inf_bounds = self.calc_start_end(content_filt)
                 self.annotations[recording] = content_inf_bounds
 
+    # Convert timestamps to frame level, for sampling rate 48,000
     def add_frame_info(self):
         for df in self.annotations.values():
             df["start_frame"] = df["start"] * 48_000

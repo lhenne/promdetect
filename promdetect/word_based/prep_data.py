@@ -2,6 +2,10 @@ from promdetect.word_based import extract_word_features
 from promdetect.prep.process_annotations import AnnotationReader
 import os
 
+"""
+Coordinate feature extraction with annotation processing steps, run for all recordings.
+"""
+
 with open(
     "/home/lukas/Dokumente/Uni/ma_thesis/promdetect/data/dirndl/list_recordings.txt",
     "r",
