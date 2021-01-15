@@ -12,7 +12,7 @@ import parselmouth as pm
 from parselmouth import praat
 
 
-# ANCILLARY FUNCTIONS
+# ANCILLARY FUNCTION
 def check_input_df(input_df, expected_cols):
     """
     Check if the input DataFrame contains all the necessary columns for the extraction.
@@ -28,53 +28,36 @@ def check_input_df(input_df, expected_cols):
         )
 
 
-# EXTRACTION
-
-
 class Extractor(object):
+    """
+    Acoustic feature extractor.
+    wav_file: Obligatory, path to a wav-file recording has to be supplied.
+    nuclei: Processed DIRNDL annotation DataFrame on a syllable nucleus basis.
+    gender: Gender of the speaker in the recording.
+
+    The class specifies a large number of methods for the individual extraction of features for all nuclei in the provided DataFrame.
+    Methods usually call Praat extraction functions that do the main work.
+    """
+
     def __init__(self, wav_file, nuclei="", gender="f"):
         self.wav_file = wav_file
         self.snd_obj = pm.Sound(self.wav_file)
         self.nuclei = nuclei
         self.gender = gender
 
+        # Different pitch ranges for female and male speakers
         if gender == "f":
             self.__pitch_range = (75, 500)
         else:
             self.__pitch_range = (50, 300)
 
-    def calc_intensity(self):
-        """
-        Calculate Praat intensity object from sound object
-        """
-
-        self.int_obj = self.snd_obj.to_intensity(minimum_pitch=self.__pitch_range[0])
-
-    def calc_pitch(self):
-        """
-        Calculate Praat pitch object from sound object
-        """
-
-        self.pitch_obj = self.snd_obj.to_pitch_cc(
-            pitch_floor=self.__pitch_range[0], pitch_ceiling=self.__pitch_range[1]
-        )
-
-    def extract_parts(self):
-        """
-        Extract separate Praat sound objects for each of the nuclei in `self.nuclei`.
-        Add them to DataFrame.
-        """
-
-        self.nuclei["part_obj"] = [
-            self.snd_obj.extract_part(from_time=row.start_est, to_time=row.end)
-            for row in self.nuclei.itertuples()
-        ]
-
+    # EXTRACTION FUNCTIONS
     def calc_pitch_parts(self):
         """
         Create pitch objects for each of the nucleus sound objects extracted by `extract_parts()`
         """
 
+        # Only run on nuclei with duration > 60 ms
         nuclei_filtered = self.nuclei[self.nuclei["duration"] >= 0.06].copy()
 
         nuclei_filtered["part_pitch"] = np.array(
@@ -87,11 +70,12 @@ class Extractor(object):
             ]
         )
 
+        # Consolidate DataFrames
         self.nuclei["part_pitch"] = nuclei_filtered["part_pitch"]
 
     def get_rms(self):
         """
-        This function extracts the RMS value for syllable nuclei.
+        Extract the RMS value for syllable nuclei.
         """
 
         check_input_df(self.nuclei, ["start_est", "end"])
@@ -107,7 +91,7 @@ class Extractor(object):
 
     def get_duration_normed(self):
         """
-        This function extracts the duration of syllable nuclei, normalized to the rest of their intonation phrase
+        Extract the duration of syllable nuclei, normalized to the rest of their intonation phrase
         """
 
         check_input_df(self.nuclei, ["start_est", "end", "ip_start", "ip_end"])
@@ -117,6 +101,8 @@ class Extractor(object):
         )
 
         if list(self.nuclei["duration"]) != []:
+
+            # Group IPs and get each one's mean duration
             ip_mean = (
                 self.nuclei[["ip_start", "ip_end", "duration"]]
                 .groupby(["ip_start", "ip_end"], as_index=False)
@@ -124,6 +110,7 @@ class Extractor(object):
             )
             ip_mean = ip_mean.rename(columns={"duration": "mean_ip_dur"})
 
+            # Consolidate IP mean and nucleus DataFrames, so each nucleus row has info on the corresponding IP's mean duration
             durs_df = pd.merge(
                 self.nuclei, ip_mean, how="left", on=["ip_start", "ip_end"]
             )
@@ -136,11 +123,13 @@ class Extractor(object):
 
     def get_pitch_slope(self):
         """
-        This function calculates the pitch slope, without octave jumps, across each syllable nucleus
+        Calculate the pitch slope, without octave jumps, across each syllable nucleus
         """
 
         check_input_df(self.nuclei, ["start_est", "end"])
 
+        # Requires independent sound and pitch contour slices for each nucleus.
+        # Create if not existing.
         if "part_obj" not in self.nuclei.columns:
             self.extract_parts()
             self.calc_pitch_parts()
@@ -163,7 +152,7 @@ class Extractor(object):
 
     def get_min_intensity_nuclei(self):
         """
-        This function extracts the minimum intensity value in each syllable nucleus
+        Extract the minimum intensity value in each syllable nucleus
         """
 
         check_input_df(self.nuclei, ["start_est", "end"])
@@ -183,7 +172,7 @@ class Extractor(object):
 
     def get_max_intensity_nuclei(self):
         """
-        This function extracts the maximum intensity value in each syllable nucleus
+        Extract the maximum intensity value in each syllable nucleus
         """
 
         check_input_df(self.nuclei, ["start_est", "end"])
@@ -223,7 +212,7 @@ class Extractor(object):
 
     def get_intensity_std_nuclei(self):
         """
-        This function extracts the standard deviation for intensity values across each syllable nucleus
+        Extract the standard deviation for intensity values across each syllable nucleus
         """
 
         check_input_df(self.nuclei, ["start_est", "end"])
@@ -245,7 +234,7 @@ class Extractor(object):
 
     def get_min_intensity_pos(self):
         """
-        This function extracts the relative position of the intensity minimum within the syllable nucleus
+        Extract the relative position of the intensity minimum within the syllable nucleus
         """
 
         check_input_df(self.nuclei, ["start_est", "end"])
@@ -265,7 +254,7 @@ class Extractor(object):
 
     def get_max_intensity_pos(self):
         """
-        This function extracts the relative position of the intensity maximum within the syllable nucleus
+        Extract the relative position of the intensity maximum within the syllable nucleus
         """
 
         check_input_df(self.nuclei, ["start_est", "end"])
@@ -285,7 +274,7 @@ class Extractor(object):
 
     def get_intensity_ip(self):
         """
-        This function extracts the mean intensity value for each intonation phrase
+        Extract the mean intensity value for each intonation phrase
         """
 
         check_input_df(self.nuclei, ["ip_start", "ip_end"])
@@ -307,7 +296,7 @@ class Extractor(object):
 
     def get_f0_max_nuclei(self):
         """
-        This function extracts the F0 peak value in each syllable nucleus
+        Extract the F0 peak value in each syllable nucleus
         """
 
         check_input_df(self.nuclei, ["start_est", "end"])
@@ -325,13 +314,14 @@ class Extractor(object):
 
         f0_max = nuclei_filtered["f0_max"]
 
+        # Add to main DataFrame for other functions to use
         self.nuclei["f0_max"] = f0_max
 
         return f0_max
 
     def get_f0_min_nuclei(self):
         """
-        This function extracts the minimal F0 value from each syllable nucleus
+        Extract the minimal F0 value from each syllable nucleus
         """
 
         check_input_df(self.nuclei, ["start_est", "end"])
@@ -349,13 +339,14 @@ class Extractor(object):
 
         f0_min = nuclei_filtered["f0_min"]
 
+        # Add to main DataFrame for other functions to use
         self.nuclei["f0_min"] = f0_min
 
         return f0_min
 
     def get_f0_mean_nuclei(self):
         """
-        Extracts the mean F0 value for each syllable nucleus
+        Extract the mean F0 value for each syllable nucleus
         """
 
         check_input_df(self.nuclei, ["start_est", "end"])
@@ -375,7 +366,7 @@ class Extractor(object):
 
     def get_f0_range_nuclei(self):
         """
-        This function extracts the F0 range (max - min) for each syllable nucleus
+        Extract the F0 range (max - min) for each syllable nucleus
         """
 
         check_input_df(self.nuclei, ["start_est", "end", "f0_min", "f0_max"])
@@ -386,7 +377,7 @@ class Extractor(object):
 
     def get_f0_std_nuclei(self):
         """
-        This function extracts the minimal F0 value from each syllable nucleus
+        Extract the minimal F0 value from each syllable nucleus
         """
 
         check_input_df(self.nuclei, ["start_est", "end"])
@@ -408,13 +399,14 @@ class Extractor(object):
 
         f0_std = nuclei_filtered["f0_std"]
 
+        # Add to main DataFrame for other functions to use
         self.nuclei["f0_std"] = f0_std
 
         return f0_std
 
     def get_f0_min_pos(self):
         """
-        This function extracts the relative position of the pitch minimum within a syllable nucleus
+        Extract the relative position of the pitch minimum within a syllable nucleus
         """
 
         check_input_df(self.nuclei, ["start_est", "end"])
@@ -432,7 +424,7 @@ class Extractor(object):
 
     def get_f0_max_pos(self):
         """
-        This function extracts the relative position of the pitch maximum within a syllable nucleus
+        Extract the relative position of the pitch maximum within a syllable nucleus
         """
 
         check_input_df(self.nuclei, ["start_est", "end"])
@@ -450,7 +442,7 @@ class Extractor(object):
 
     def get_excursion(self, level=""):
         """
-        This function extracts the pitch excursion with normalization on either the "word" level or the intonation phrase ("ip") level
+        Extract the pitch excursion with normalization on either the "word" level or the intonation phrase ("ip") level
         """
 
         if level == "word":
@@ -460,6 +452,7 @@ class Extractor(object):
                 (self.nuclei["word_start"].notna()) & (self.nuclei["word_end"].notna())
             ].copy()
 
+            # Calculate 10th percentile of the pitch contour during nucleus
             timestamps_filtered["f0_q10"] = [
                 praat.call(
                     self.pitch_obj,
@@ -485,6 +478,7 @@ class Extractor(object):
                 ["ip_start", "ip_end"]
             ].drop_duplicates()
 
+            # Calculate 10th percentile of the pitch contour during nucleus
             timestamps_filtered["f0_q10"] = [
                 praat.call(
                     self.pitch_obj,
@@ -504,6 +498,7 @@ class Extractor(object):
         else:
             raise ValueError("Argument 'level' must be one of ['word', 'ip']")
 
+        # Calculate excursion: 12 * log2(F0_max/F0_10%)
         excursions = np.array(12 * np.log2(norm_df["f0_max"] / norm_df["f0_q10"]))
 
         return excursions
@@ -517,6 +512,8 @@ class Extractor(object):
 
         check_input_df(self.nuclei, ["start_est", "end"])
 
+        # Requires independent sound slices for each nucleus.
+        # Create if not existing.
         if "part_obj" not in self.nuclei.columns:
             self.extract_parts()
 
@@ -528,10 +525,12 @@ class Extractor(object):
             part_obj, start, end
         ):  # ancillary function to calculcate spectral tilt as mean C1 value over syllable nucleus
 
+            # nucleus length needs to be at least 30 ms for analysis (2 * analysis frame length)
             if (end - start) > 0.03:
                 nucl_mfcc = part_obj.to_mfcc(
                     number_of_coefficients=1, window_length=0.01
                 )
+                # C1 is second element in MFCC array
                 nucl_tilt = np.mean(nucl_mfcc.to_array()[1])
 
             else:
@@ -555,6 +554,8 @@ class Extractor(object):
 
         check_input_df(self.nuclei, ["start_est", "end"])
 
+        # Requires independent sound slices for each nucleus.
+        # Create if not existing.
         if "part_obj" not in self.nuclei.columns:
             self.extract_parts()
 
@@ -566,10 +567,13 @@ class Extractor(object):
             part_obj, start, end
         ):  # ancillary function to calculcate spectral tilt as mean C1 value over syllable nucleus
 
+            # Nucleus length needs to be at least 30 ms for analysis (2 * analysis frame length)
             if (end - start) > 0.03:
                 nucl_mfcc = part_obj.to_mfcc(
                     number_of_coefficients=1, window_length=0.01
-                ).to_array()[1]
+                ).to_array()[
+                    1
+                ]  # C1 is second element in MFCC array
                 nucl_tilt = max(nucl_mfcc) - min(nucl_mfcc)
 
             else:
@@ -594,6 +598,8 @@ class Extractor(object):
 
         check_input_df(self.nuclei, ["start_est", "end"])
 
+        # Requires independent sound slices for each nucleus.
+        # Create if not existing.
         if "part_obj" not in self.nuclei.columns:
             self.extract_parts()
 
@@ -605,10 +611,13 @@ class Extractor(object):
             part_obj, start, end
         ):  # ancillary function to calculcate spectral tilt as minimum C1 value over syllable nucleus
 
+            # Nucleus length needs to be at least 30 ms for analysis (2 * analysis frame length)
             if (end - start) > 0.03:
                 nucl_mfcc = part_obj.to_mfcc(
                     number_of_coefficients=1, window_length=0.01
-                ).to_array()[1]
+                ).to_array()[
+                    1
+                ]  # C1 is second element in MFCC array
                 nucl_tilt = min(nucl_mfcc)
 
             else:
@@ -633,6 +642,8 @@ class Extractor(object):
 
         check_input_df(self.nuclei, ["start_est", "end"])
 
+        # Requires independent sound slices for each nucleus.
+        # Create if not existing.
         if "part_obj" not in self.nuclei.columns:
             self.extract_parts()
 
@@ -644,10 +655,13 @@ class Extractor(object):
             part_obj, start, end
         ):  # ancillary function to calculcate spectral tilt as maximum C1 value over syllable nucleus
 
+            # Nucleus length needs to be at least 30 ms for analysis (2 * analysis frame length)
             if (end - start) > 0.03:
                 nucl_mfcc = part_obj.to_mfcc(
                     number_of_coefficients=1, window_length=0.01
-                ).to_array()[1]
+                ).to_array()[
+                    1
+                ]  # C1 is second element in MFCC array
                 nucl_tilt = max(nucl_mfcc)
 
             else:
@@ -666,10 +680,12 @@ class Extractor(object):
 
     def get_spectral_cog(self):
         """
-        Extracts the spectral center of gravity (CoG)
+        Extract the spectral center of gravity (CoG)
         """
         check_input_df(self.nuclei, ["start_est", "end"])
 
+        # Requires independent sound slices for each nucleus.
+        # Create if not existing.
         if "part_obj" not in self.nuclei.columns:
             self.extract_parts()
 
@@ -677,6 +693,7 @@ class Extractor(object):
             (self.nuclei["start_est"].notna()) & (self.nuclei["end"].notna())
         ].copy()
 
+        # Requires spectrum object for each nucleus slice
         timestamps_filtered["spec_part"] = [
             row.part_obj.to_spectrum() for row in timestamps_filtered.itertuples()
         ]
@@ -692,11 +709,13 @@ class Extractor(object):
 
     def get_h1_h2(self):
         """
-        Extracts the H1-H2 value according to the calculation in Mooshammer (2010)
+        Extract the H1-H2 value according to the calculation in Mooshammer (2010).
         """
 
         check_input_df(self.nuclei, ["start_est", "end"])
 
+        # Requires independent sound and pitch contour slices for each nucleus.
+        # Create if not existing.
         if "part_obj" not in self.nuclei.columns:
             self.extract_parts()
             self.calc_pitch_parts()
@@ -711,6 +730,7 @@ class Extractor(object):
         ].copy()
 
         def calc_h1_h2(row):
+            # Calculate bounds for more accurate Pitch object
             q25 = 0.75 * praat.call(
                 self.pitch_obj, "Get quantile", row.start_est, row.end, 0.25, "Hertz"
             )
@@ -722,12 +742,14 @@ class Extractor(object):
                     pitch_floor=q25, pitch_ceiling=q75
                 )
 
+                # Get H1 (F0) and H2 frequencies, calculate their bandwidths.
                 h1_freq = praat.call(pitch_part, "Get mean", 0, 0, "Hertz")
                 h2_freq = h1_freq * 2
 
                 h1_bw = 80 + 120 * h1_freq / 5_000
                 h2_bw = 80 + 120 * h2_freq / 5_000
 
+                # Filter sound signal for area around H1 and H2
                 h1_filt_snd = praat.call(
                     row.part_obj, "Filter (one formant)", h1_freq, h1_bw
                 )
@@ -735,6 +757,7 @@ class Extractor(object):
                     row.part_obj, "Filter (one formant)", h2_freq, h2_bw
                 )
 
+                # Get intensity of filter bands
                 h1 = praat.call(h1_filt_snd, "Get intensity (dB)")
                 h2 = praat.call(h2_filt_snd, "Get intensity (dB)")
 
@@ -756,7 +779,9 @@ class Extractor(object):
     # ANCILLARY FUNCTIONS
     def relative_position(self, extremum, type, start, end):
         """
-        Calculates the relative position of either a maximum or minimum value within a timespan delimited by start and end timestamps
+        Calculate the relative position of either a maximum or minimum value within a timespan delimited by start and end timestamps
+        extremum: one of "maximum" and "minimum"
+        type: one of "pitch" and "intensity"
         """
 
         base = extremum_at = None
@@ -779,3 +804,30 @@ class Extractor(object):
         relative_pos = time_passed / (end - start)
 
         return relative_pos
+
+    def calc_intensity(self):
+        """
+        Calculate Praat intensity object from sound object
+        """
+
+        self.int_obj = self.snd_obj.to_intensity(minimum_pitch=self.__pitch_range[0])
+
+    def calc_pitch(self):
+        """
+        Calculate Praat pitch object from sound object
+        """
+
+        self.pitch_obj = self.snd_obj.to_pitch_cc(
+            pitch_floor=self.__pitch_range[0], pitch_ceiling=self.__pitch_range[1]
+        )
+
+    def extract_parts(self):
+        """
+        Extract separate Praat sound objects for each of the nuclei in `self.nuclei`.
+        Add them to DataFrame.
+        """
+
+        self.nuclei["part_obj"] = [
+            self.snd_obj.extract_part(from_time=row.start_est, to_time=row.end)
+            for row in self.nuclei.itertuples()
+        ]

@@ -53,6 +53,7 @@ class FeatureSet:
             )
             features = self.nuclei.copy()
 
+            # Will add extracted feature values to main feature DataFrame
             for func_to_run in to_extract:
                 self.call_function(extractor, features, func_to_run)
 
@@ -62,6 +63,11 @@ class FeatureSet:
             pass
 
     def call_function(self, extractor, features_df, func_to_run):
+        """
+        Call the extraction functions based on which are activated in config.json.
+        Different functions have different prerequisites.
+        """
+
         if func_to_run == "excursion":
             levels = self.config["features_input"]["excursion"]
             if not hasattr(extractor, "pitch_obj"):
@@ -123,6 +129,7 @@ if __name__ == "__main__":
 
     out_dir = str(Path(input("Please enter output directory: ")).resolve()) + "/"
 
+    # Check for already existing data and skip if found
     existing = [Path(file).stem for file in glob(f"{out_dir}*")]
     idx = 1
     recordings = [recording for recording in recordings if recording not in existing]
