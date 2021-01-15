@@ -4,6 +4,10 @@ from os import chdir
 from json import load
 from promdetect.frame_based.extract_frame_features import FrameLevelExtractor
 
+"""
+Run frame-level feature extraction for all files and store results in files
+"""
+
 # Import dictionary containing speaker gender for each recording
 with open(
     "/home/lukas/Dokumente/Uni/ma_thesis/promdetect/data/dirndl/speakers.json", "r"

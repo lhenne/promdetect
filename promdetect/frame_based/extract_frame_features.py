@@ -4,6 +4,11 @@ from parselmouth import praat
 
 
 class FrameLevelExtractor:
+    """
+    Extract raw feature values on the level of short analysis frames (10-15 ms).
+    No external information is needed, aside from speaker gender
+    """
+
     def __init__(self, wav_file, gender="f", path="features") -> None:
         self.wav_file = wav_file
         self.snd_obj = pm.Sound(self.wav_file)
@@ -16,6 +21,8 @@ class FrameLevelExtractor:
         else:
             self.__pitch_range = (50, 300)
 
+        # Fixed 10 ms time step for all extraction, but 10 ms vs 15 ms analysis window for female and male speakers, respectively.
+        # Accordingly, male speaker analysis windows overlap.
         self.TIME_STEP = 0.01
 
         self.pitch_obj = self.snd_obj.to_pitch_cc(
@@ -27,13 +34,19 @@ class FrameLevelExtractor:
         self.pitch_extraction()
 
     def pitch_extraction(self):
+        """
+        Extract F0 values and strength of pitch candidates for each frame
+        """
+
         timestamps = self.pitch_obj.ts()
 
         pitch_cands = self.pitch_obj.to_array().T
+
+        # Maximum strength candidate is chosen as best candidate and evaluated for voicing probability feature
         best_cands = [max(frame, key=lambda x: x[1]) for frame in pitch_cands]
         f0, voicing_pr = zip(
             *best_cands
-        )  # candidate strength as replacement for voicing probability, will be normalized later so high values are not problematic
+        )  # candidate strength as replacement for voicing probability, will be scaled later so high-average values are not problematic
 
         cols_to_add = ["time", "f0", "voicing_pr"]
         vals_to_add = zip(timestamps, f0, voicing_pr)
@@ -42,6 +55,10 @@ class FrameLevelExtractor:
         self.features = pd.concat([self.features, data_to_add])
 
     def rms_extraction(self):
+        """
+        Extract root-mean-square (RMS) for each frame
+        """
+
         self.features["rms"] = [
             self.snd_obj.get_rms(
                 from_time=frame.time, to_time=(frame.time + self.TIME_STEP)
@@ -50,9 +67,16 @@ class FrameLevelExtractor:
         ]
 
     def loudness_extraction(self):
+        """
+        Extract perceived loudness for each frame
+        """
+
+        # Create Praat cochleagram object for recording
         self.cochleagram = praat.call(
             self.snd_obj, "To Cochleagram", 0.01, 0.1, 0.03, 0.03
         )
+
+        # Get momentary excitation value at start time of frame
         self.features["excitation"] = [
             praat.call(self.cochleagram, "To Excitation (slice)", frame.time)
             for frame in self.features.itertuples()
@@ -66,6 +90,11 @@ class FrameLevelExtractor:
         self.features = self.features.drop(columns="excitation")
 
     def zcr_extraction(self):
+        """
+        Extract zero-crossing rate by counting zero crossings over the duration of each frame.
+        Both negative-to-positive and positive-to-negative crossings are counted.
+        """
+
         if (
             self.gender == "f"
         ):  # accommodate for varying window lengths between male and female speakers
@@ -83,6 +112,7 @@ class FrameLevelExtractor:
                 for frame in self.features.itertuples()
             ]
 
+        # Create Praat PointProcess object containing points where zero line is crossed coming from positive or negative area
         self.features["pp_part"] = [
             praat.call(frame.snd_part, "To PointProcess (zeroes)", 1, "yes", "yes")
             for frame in self.features.itertuples()
@@ -104,6 +134,11 @@ class FrameLevelExtractor:
         self.features = self.features.drop(columns=["snd_part", "pp_part"])
 
     def hnr_extraction(self):
+        """
+        Extract Harmonics-to-noise ratio (HNR) for every frame.
+        """
+
+        # Create Praat harmonicity object, which represents HNR.
         self.harm_obj = self.snd_obj.to_harmonicity_cc(
             minimum_pitch=self.__pitch_range[0]
         )
