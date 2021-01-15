@@ -3,7 +3,13 @@
 *conflicted copy*
 .vscode
 promdetect.egg-info
-data
-promdetect/analysis/.ipynb_checkpoints/analyze_dirndl-checkpoint.ipynb
 tests/test_material
 doc
+
+data/dirndl
+data/features/sets
+data/features/frame_based/raw
+data/features/frame_based/sets/main.pickle
+data/features/nucleus_based/raw
+data/features/word_based/raw
+data/features/word_based/sets/main.pickle
