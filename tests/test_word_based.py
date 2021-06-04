@@ -73,12 +73,6 @@ class WordSegmentationTests(unittest.TestCase):
                 "/home/lukas/Dokumente/Uni/ma_thesis/promdetect/data/dirndl/word_based/*.csv"
             )
         )
-        self.assertTrue(
-            "/home/lukas/Dokumente/Uni/ma_thesis/promdetect/data/dirndl/word_based/dlf-nachrichten-200703250000_words.npy"
-            in glob(
-                "/home/lukas/Dokumente/Uni/ma_thesis/promdetect/data/dirndl/word_based/*.npy"
-            )
-        )
 
 
 class IPSegmentationTests(unittest.TestCase):
@@ -146,12 +140,6 @@ class IPSegmentationTests(unittest.TestCase):
             "/home/lukas/Dokumente/Uni/ma_thesis/promdetect/data/dirndl/word_based/dlf-nachrichten-200703250000_tones.csv"
             in glob(
                 "/home/lukas/Dokumente/Uni/ma_thesis/promdetect/data/dirndl/word_based/*.csv"
-            )
-        )
-        self.assertTrue(
-            "/home/lukas/Dokumente/Uni/ma_thesis/promdetect/data/dirndl/word_based/dlf-nachrichten-200703250000_tones.npy"
-            in glob(
-                "/home/lukas/Dokumente/Uni/ma_thesis/promdetect/data/dirndl/word_based/*.npy"
             )
         )
 

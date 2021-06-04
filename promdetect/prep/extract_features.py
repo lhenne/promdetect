@@ -58,7 +58,7 @@ class Extractor(object):
         """
 
         # Only run on nuclei with duration > 60 ms
-        nuclei_filtered = self.nuclei[self.nuclei["duration"] >= 0.06].copy()
+        nuclei_filtered = self.nuclei[(self.nuclei["end"] - self.nuclei["start_est"]) >= 0.06].copy()
 
         nuclei_filtered["part_pitch"] = np.array(
             [
